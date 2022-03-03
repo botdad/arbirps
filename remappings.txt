@@ -1,1 +1,1 @@
-ds-test/=lib/ds-test/src/
+ds-test/=contracts/lib/ds-test/src/
