@@ -9,13 +9,16 @@ node_modules
 /coverage
 
 # production
-/build
+build/
 
 # misc
 .DS_Store
 .env
-/tmp
-/tau/*.ptau
+tmp/
+**/tau/*.ptau
+
+out/
+cache/
 
 npm-debug.log*
 yarn-debug.log*
