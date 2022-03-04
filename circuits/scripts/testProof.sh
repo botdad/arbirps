@@ -1,6 +1,6 @@
 #!/bin/bash
 mkdir tmp
-move="1"
+move="2"
 secret="123152419872319823719238712098"
 
 echo "{ \"move\": \"${move}\", \"secret\": \"${secret}\" }" > tmp/attestValidMove_input.json
@@ -16,7 +16,10 @@ node build/attestValidMove_js/generate_witness.js \
   yarn run snarkjs groth16 verify \
     circuits/build/attestValidMove_verification_key.json \
     circuits/tmp/attestValidMove_public.json \
-    circuits/tmp/attestValidMove_proof.json
+    circuits/tmp/attestValidMove_proof.json && \
+  yarn -s run snarkjs generatecall \
+    circuits/tmp/attestValidMove_public.json \
+    circuits/tmp/attestValidMove_proof.json | sed 's/^/\[/; s/$/\]/' | jq -r
 
 attestation=`jq -r ".[0]" tmp/attestValidMove_public.json`
 
@@ -34,6 +37,7 @@ node build/revealMove_js/generate_witness.js \
   yarn run snarkjs groth16 verify \
     circuits/build/revealMove_verification_key.json \
     circuits/tmp/revealMove_public.json \
-    circuits/tmp/revealMove_proof.json
-
-jq -r "." tmp/revealMove_public.json
+    circuits/tmp/revealMove_proof.json && \
+  yarn -s run snarkjs generatecall \
+    circuits/tmp/revealMove_public.json \
+    circuits/tmp/revealMove_proof.json | sed 's/^/\[/; s/$/\]/' | jq -r
