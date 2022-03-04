@@ -22,7 +22,7 @@ contract Verifiers is DSTest {
     ];
 
     bytes memory proof = abi.encode(proofUints);
-    uint256[1] memory input = [0x03a2ab5cebb2b82a7a52f9c15b47c39445b081d55b5c2dd7704b4ca61884d125];
+    uint256 input = 0x03a2ab5cebb2b82a7a52f9c15b47c39445b081d55b5c2dd7704b4ca61884d125;
 
     assertTrue(AttestValidMoveVerifier.verifyProof(proof, input));
   }

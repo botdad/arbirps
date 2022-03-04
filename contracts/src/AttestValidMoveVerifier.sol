@@ -64,7 +64,7 @@ library AttestValidMoveVerifier {
     );
   }
 
-  function verifyProof(bytes memory proof, uint256[1] memory input) internal view returns (bool) {
+  function verifyProof(bytes memory proof, uint256 input) internal view returns (bool) {
     uint256[8] memory p = abi.decode(proof, (uint256[8]));
 
     // Make sure that each element in the proof is less than the prime q
@@ -83,10 +83,8 @@ library AttestValidMoveVerifier {
     vk_x = Pairing.plus(vk_x, vk.IC[0]);
 
     // Make sure that every input is less than the snark scalar field
-    for (uint256 i = 0; i < input.length; i++) {
-      require(input[i] < Pairing.SNARK_SCALAR_FIELD, "verifier-gte-snark-scalar-field");
-      vk_x = Pairing.plus(vk_x, Pairing.scalar_mul(vk.IC[i + 1], input[i]));
-    }
+    require(input < Pairing.SNARK_SCALAR_FIELD, "verifier-gte-snark-scalar-field");
+    vk_x = Pairing.plus(vk_x, Pairing.scalar_mul(vk.IC[1], input));
 
     return Pairing.pairing(Pairing.negate(proofA), proofB, vk.alfa1, vk.beta2, vk_x, vk.gamma2, proofC, vk.delta2);
   }
