@@ -6,7 +6,7 @@ import "ds-test/test.sol";
 import "../AttestValidMoveVerifier.sol";
 import "../RevealMoveVerifier.sol";
 
-contract Verifiers is DSTest {
+contract VerifiersTest is DSTest {
   function setUp() public {}
 
   function testValidMove() public {
