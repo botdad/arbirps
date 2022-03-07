@@ -113,6 +113,10 @@ contract ArbibotRPSTest is DSTest {
     ]
   ];
 
+  function getErrorBytes(bytes memory error) public pure returns (bytes memory) {
+    return abi.encodePacked(bytes4(keccak256(error)));
+  }
+
   function testStartRound() public {
     bytes memory proof = abi.encode(moveProofUints[0]);
     uint256 arbibotId = 0;
@@ -255,7 +259,7 @@ contract ArbibotRPSTest is DSTest {
     uint256 roundId = rps.totalRounds();
     rps.startRound(arbibotId1, startProof, moveInputs[0]);
 
-    vm.expectRevert(abi.encodePacked(bytes4(keccak256("ErrorInvalidMove()"))));
+    vm.expectRevert(getErrorBytes("ErrorInvalidMove()"));
     rps.submitMove2(arbibotId2, roundId, move);
   }
 
@@ -270,7 +274,7 @@ contract ArbibotRPSTest is DSTest {
     rps.startRound(arbibotId1, startProof, moveInputs[0]);
     rps.submitMove2(arbibotId2, roundId, move1);
 
-    vm.expectRevert(abi.encodePacked(bytes4(keccak256("ErrorRoundHasMove()"))));
+    vm.expectRevert(getErrorBytes("ErrorRoundHasMove()"));
     rps.submitMove2(arbibotId2, roundId, move2);
   }
 
@@ -284,7 +288,14 @@ contract ArbibotRPSTest is DSTest {
     uint256 roundId = rps.totalRounds();
     rps.startRound(arbibotId1, startProof, moveInputs[0]);
     rps.submitMove2(arbibotId2, roundId, move);
-    vm.expectRevert(abi.encodePacked(bytes4(keccak256("ErrorUnauthorized()"))));
+    vm.expectRevert(getErrorBytes("ErrorUnauthorized()"));
     rps.endRound(arbibotId1, roundId, revealProof, revealInputs[1]);
+  }
+
+  function testNotOwner() public {
+    erc721.setOwner(address(0));
+
+    vm.expectRevert(getErrorBytes("ErrorUnauthorized()"));
+    rps.startRound(0, "", 0);
   }
 }
