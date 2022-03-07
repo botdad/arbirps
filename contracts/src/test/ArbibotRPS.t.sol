@@ -3,16 +3,21 @@ pragma solidity ^0.8.10;
 
 import "ds-test/test.sol";
 import "./Vm.sol";
+import "./MockMinimalErc721.sol";
 
 import "../ArbibotRPS.sol";
 
 contract ArbibotRPSTest is DSTest {
   Vm vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
+  MockMinimalErc721 erc721;
   ArbibotRPS rps;
 
   function setUp() public {
-    rps = new ArbibotRPS();
+    erc721 = new MockMinimalErc721();
+    erc721.setOwner(address(this));
+
+    rps = new ArbibotRPS(address(erc721));
   }
 
   uint256[8][3] moveProofUints = [

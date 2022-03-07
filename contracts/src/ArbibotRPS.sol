@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 import "./AttestValidMoveVerifier.sol";
 import "./RevealMoveVerifier.sol";
+import "./IMinimalERC721.sol";
 
 contract ArbibotRPS {
   error ErrorInvalidProof();
@@ -12,6 +13,7 @@ contract ArbibotRPS {
   error ErrorNoMove2();
 
   uint8 public immutable DEAD_MOVE = 3;
+  IMinimalERC721 public immutable arbibots;
 
   struct Round {
     uint256 arbibotId1;
@@ -27,12 +29,22 @@ contract ArbibotRPS {
   mapping(uint256 => Round) public rounds;
   mapping(uint256 => uint256) public nonces;
 
+  constructor(address _arbibots) {
+    arbibots = IMinimalERC721(_arbibots);
+  }
+
+  modifier onlyArbibotOwner(uint256 arbibotId) {
+    if (arbibots.ownerOf(arbibotId) != msg.sender) {
+      revert ErrorUnauthorized();
+    }
+    _;
+  }
+
   function startRound(
     uint256 arbibotId,
     bytes memory proof,
     uint256 input
-  ) external {
-    // TODO: require owner of valid arbibot
+  ) external onlyArbibotOwner(arbibotId) {
     if (!AttestValidMoveVerifier.verifyProof(proof, input)) {
       revert ErrorInvalidProof();
     }
@@ -50,8 +62,7 @@ contract ArbibotRPS {
     uint256 arbibotId,
     uint256 roundId,
     uint8 move
-  ) external {
-    // TODO: require owner of valid arbibot
+  ) external onlyArbibotOwner(arbibotId) {
     Round memory round = rounds[roundId];
 
     if (round.ended || round.move2 != DEAD_MOVE) {
@@ -73,8 +84,7 @@ contract ArbibotRPS {
     uint256 roundId,
     bytes memory proof,
     uint256[4] memory input
-  ) external {
-    // TODO: require owner of valid arbibot
+  ) external onlyArbibotOwner(arbibotId) {
     Round memory round = rounds[roundId];
 
     if (round.arbibotId1 != arbibotId) {
