@@ -80,7 +80,11 @@ library RevealMoveVerifier {
     );
   }
 
-  function verifyProof(bytes memory proof, uint256[4] memory input) internal view returns (bool) {
+  function verifyProof(
+    bytes memory proof,
+    uint256 move,
+    uint256 moveAttestation
+  ) internal view returns (bool) {
     uint256[8] memory p = abi.decode(proof, (uint256[8]));
 
     // Make sure that each element in the proof is less than the prime q
@@ -98,10 +102,11 @@ library RevealMoveVerifier {
     Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
     vk_x = Pairing.plus(vk_x, vk.IC[0]);
 
+    uint256[4] memory proofInput = [move == 0 ? 1 : 0, move == 1 ? 1 : 0, move == 2 ? 1 : 0, moveAttestation];
     // Make sure that every input is less than the snark scalar field
-    for (uint256 i = 0; i < input.length; i++) {
-      require(input[i] < Pairing.SNARK_SCALAR_FIELD, "verifier-gte-snark-scalar-field");
-      vk_x = Pairing.plus(vk_x, Pairing.scalar_mul(vk.IC[i + 1], input[i]));
+    for (uint256 i = 0; i < proofInput.length; i++) {
+      require(proofInput[i] < Pairing.SNARK_SCALAR_FIELD, "verifier-gte-snark-scalar-field");
+      vk_x = Pairing.plus(vk_x, Pairing.scalar_mul(vk.IC[i + 1], proofInput[i]));
     }
 
     return Pairing.pairing(Pairing.negate(proofA), proofB, vk.alfa1, vk.beta2, vk_x, vk.gamma2, proofC, vk.delta2);

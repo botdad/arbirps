@@ -40,14 +40,9 @@ contract VerifiersTest is DSTest {
     ];
 
     bytes memory proof = abi.encode(proofUints);
-    uint256[4] memory input = [
-      0x0000000000000000000000000000000000000000000000000000000000000000,
-      0x0000000000000000000000000000000000000000000000000000000000000001,
-      0x0000000000000000000000000000000000000000000000000000000000000000,
-      0x03a2ab5cebb2b82a7a52f9c15b47c39445b081d55b5c2dd7704b4ca61884d125
-    ];
+    uint256 moveAttestation = 0x03a2ab5cebb2b82a7a52f9c15b47c39445b081d55b5c2dd7704b4ca61884d125;
 
     // assertTrue(RevealMoveVerifier.verifyProof(proof, input));
-    assertTrue(RevealMoveVerifier.verifyProof(proof, input));
+    assertTrue(RevealMoveVerifier.verifyProof(proof, 1, moveAttestation));
   }
 }

@@ -5,16 +5,22 @@ import "./AttestValidMoveVerifier.sol";
 import "./RevealMoveVerifier.sol";
 import "./IMinimalERC721.sol";
 
+/// @title ArbibotRPS
+/// @author botdad
+/// @notice On chain rock paper scissors game for Arbibot holders using zkp
 contract ArbibotRPS {
+  /// -----------------------------------------------------------------------
+  /// Errors
+  /// -----------------------------------------------------------------------
   error ErrorInvalidProof();
   error ErrorInvalidMove();
   error ErrorRoundHasMove();
   error ErrorUnauthorized();
   error ErrorNoMove2();
 
-  uint8 public immutable DEAD_MOVE = 3;
-  IMinimalERC721 public immutable arbibots;
-
+  /// -----------------------------------------------------------------------
+  /// Custom types
+  /// -----------------------------------------------------------------------
   struct Round {
     uint256 arbibotId1;
     uint256 arbibotId2;
@@ -25,6 +31,15 @@ contract ArbibotRPS {
     bool ended;
   }
 
+  /// -----------------------------------------------------------------------
+  /// Immutable parameters
+  /// -----------------------------------------------------------------------
+  uint8 public immutable DEAD_MOVE = 3;
+  IMinimalERC721 public immutable arbibots;
+
+  /// -----------------------------------------------------------------------
+  /// Storage variables
+  /// -----------------------------------------------------------------------
   uint256 public totalRounds;
   mapping(uint256 => Round) public rounds;
   mapping(uint256 => uint256) public nonces;
@@ -40,12 +55,25 @@ contract ArbibotRPS {
     _;
   }
 
+  /// -----------------------------------------------------------------------
+  /// User actions
+  /// -----------------------------------------------------------------------
+
+  /// @notice Starts a new round and opens up play
+  /// @dev Requires a valid AttestValidMove zk proof created off chain
+  /// @param proof ZK Proof
+  /// @param arbibotId id of the owned arbibot to use
+  /// @param moveAttestation The input signal that will be stored on chain
+  /// and compared to when move is revealed
   function startRound(
+    bytes calldata proof,
     uint256 arbibotId,
-    bytes memory proof,
-    uint256 input
+    uint256 moveAttestation
   ) external onlyArbibotOwner(arbibotId) {
-    if (!AttestValidMoveVerifier.verifyProof(proof, input)) {
+    /// -------------------------------------------------------------------
+    /// Validation
+    /// -------------------------------------------------------------------
+    if (!AttestValidMoveVerifier.verifyProof(proof, moveAttestation)) {
       revert ErrorInvalidProof();
     }
 
@@ -53,16 +81,27 @@ contract ArbibotRPS {
       nonces[arbibotId] += 1;
     }
 
-    Round memory round = Round(arbibotId, 0, 0, input, DEAD_MOVE, DEAD_MOVE, false);
+    /// -------------------------------------------------------------------
+    /// State updates
+    /// -------------------------------------------------------------------
+    Round memory round = Round(arbibotId, 0, 0, moveAttestation, DEAD_MOVE, DEAD_MOVE, false);
     rounds[totalRounds] = round;
     totalRounds++;
   }
 
+  /// @notice Starts a new round and opens up play
+  /// @dev Requires a valid AttestValidMove zk proof created off chain
+  /// @param arbibotId id of the owned arbibot to use
+  /// @param roundId roundId used in startRound
+  /// @param move RPS move
   function submitMove2(
     uint256 arbibotId,
     uint256 roundId,
     uint8 move
   ) external onlyArbibotOwner(arbibotId) {
+    /// -------------------------------------------------------------------
+    /// Validation
+    /// -------------------------------------------------------------------
     Round memory round = rounds[roundId];
 
     if (round.ended || round.move2 != DEAD_MOVE) {
@@ -73,25 +112,39 @@ contract ArbibotRPS {
       revert ErrorInvalidMove();
     }
 
+    /// -------------------------------------------------------------------
+    /// State updates
+    /// -------------------------------------------------------------------
     round.arbibotId2 = arbibotId;
     round.move2 = move;
 
     rounds[roundId] = round;
   }
 
+  /// @notice Starts a new round and opens up play
+  /// @dev Requires a valid RevealMove zk proof created off chain
+  /// @param proof ZK Proof
+  /// @param arbibotId id of the owned arbibot to use
+  /// @param roundId roundId used in startRound
+  /// @param move1 move used in startRound to be revealed
+  /// @param move1Attestation Attestation used in startRound
   function endRound(
+    bytes calldata proof,
     uint256 arbibotId,
     uint256 roundId,
-    bytes memory proof,
-    uint256[4] memory input
+    uint8 move1,
+    uint256 move1Attestation
   ) external onlyArbibotOwner(arbibotId) {
+    /// -------------------------------------------------------------------
+    /// Validation
+    /// -------------------------------------------------------------------
     Round memory round = rounds[roundId];
 
     if (round.arbibotId1 != arbibotId) {
       revert ErrorUnauthorized();
     }
 
-    if (round.move1Attestation != input[3]) {
+    if (round.move1Attestation != move1Attestation) {
       revert ErrorUnauthorized();
     }
 
@@ -103,24 +156,18 @@ contract ArbibotRPS {
       revert ErrorNoMove2();
     }
 
-    uint8 move = DEAD_MOVE;
-    if (input[0] == 1) {
-      move = 0;
-    } else if (input[1] == 1) {
-      move = 1;
-    } else if (input[2] == 1) {
-      move = 2;
-    }
-
-    if (move == DEAD_MOVE) {
+    if (move1 == DEAD_MOVE) {
       revert ErrorInvalidMove();
     }
 
-    if (!RevealMoveVerifier.verifyProof(proof, input)) {
+    if (!RevealMoveVerifier.verifyProof(proof, move1, move1Attestation)) {
       revert ErrorInvalidProof();
     }
 
-    round.move1 = move;
+    /// -------------------------------------------------------------------
+    /// State updates
+    /// -------------------------------------------------------------------
+    round.move1 = move1;
     round.ended = true;
 
     if (round.move1 > round.move2) {
