@@ -7,6 +7,7 @@
     "@typechain/ethers-v5": "^8.0.5",
     "circomlib": "^2.0.3",
     "ethers": "^5.5.2",
+    "hardhat": "^2.9.1",
     "prettier": "^2.3.1",
     "prettier-plugin-solidity": "^1.0.0-beta.10",
     "snarkjs": "^0.4.13",
