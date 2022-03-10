@@ -97,11 +97,10 @@ contract ArbibotRPSTest is DSTest {
   }
 
   function testStartRound() public {
-    bytes memory proof = abi.encode(moveProofUints[0]);
+    uint256[8] memory proof = moveProofUints[0];
     uint256 arbibotId = 0;
 
     uint256 roundBefore = rps.totalRounds();
-    uint256 nonceBefore = rps.nonces(arbibotId);
 
     rps.startRound(proof, arbibotId, moveAttestations[0]);
 
@@ -124,13 +123,10 @@ contract ArbibotRPSTest is DSTest {
 
     uint256 roundAfter = rps.totalRounds();
     assertEq(roundBefore + 1, roundAfter);
-
-    uint256 nonceAfter = rps.nonces(arbibotId);
-    assertEq(nonceBefore + 1, nonceAfter);
   }
 
   function testSubmitMove2() public {
-    bytes memory proof = abi.encode(moveProofUints[0]);
+    uint256[8] memory proof = moveProofUints[0];
     uint256 arbibotId1 = 0;
     uint256 arbibotId2 = 1;
     uint8 move = 1;
@@ -148,8 +144,8 @@ contract ArbibotRPSTest is DSTest {
   }
 
   function testEndRound() public {
-    bytes memory startProof = abi.encode(moveProofUints[0]);
-    bytes memory revealProof = abi.encode(revealProofUints[0]);
+    uint256[8] memory startProof = moveProofUints[0];
+    uint256[8] memory revealProof = revealProofUints[0];
     uint256 arbibotId1 = 0;
     uint256 arbibotId2 = 1;
     uint8 move = 1;
@@ -180,8 +176,8 @@ contract ArbibotRPSTest is DSTest {
   function testAllWinnerCombos() public {
     for (uint8 i = 0; i < 3; i++) {
       for (uint8 j = 0; j < 3; j++) {
-        bytes memory startProof = abi.encode(moveProofUints[i]);
-        bytes memory revealProof = abi.encode(revealProofUints[i]);
+        uint256[8] memory startProof = moveProofUints[i];
+        uint256[8] memory revealProof = revealProofUints[i];
         uint256 arbibotId1 = 0;
         uint256 arbibotId2 = 1;
         uint8 move = j;
@@ -230,7 +226,7 @@ contract ArbibotRPSTest is DSTest {
   }
 
   function testSubmitMoveInvalid() public {
-    bytes memory startProof = abi.encode(moveProofUints[0]);
+    uint256[8] memory startProof = moveProofUints[0];
     uint256 arbibotId1 = 0;
     uint256 arbibotId2 = 1;
     uint8 move = 3;
@@ -243,7 +239,7 @@ contract ArbibotRPSTest is DSTest {
   }
 
   function testSubmitMove2Twice() public {
-    bytes memory startProof = abi.encode(moveProofUints[0]);
+    uint256[8] memory startProof = moveProofUints[0];
     uint256 arbibotId1 = 0;
     uint256 arbibotId2 = 1;
     uint8 move1 = 1;
@@ -258,8 +254,8 @@ contract ArbibotRPSTest is DSTest {
   }
 
   function testEndRoundMismatchedAttestation() public {
-    bytes memory startProof = abi.encode(moveProofUints[0]);
-    bytes memory revealProof = abi.encode(revealProofUints[1]);
+    uint256[8] memory startProof = moveProofUints[0];
+    uint256[8] memory revealProof = revealProofUints[1];
     uint256 arbibotId1 = 0;
     uint256 arbibotId2 = 1;
     uint8 move = 1;
@@ -275,6 +271,6 @@ contract ArbibotRPSTest is DSTest {
     erc721.setOwner(address(0));
 
     vm.expectRevert(getErrorBytes("ErrorUnauthorized()"));
-    rps.startRound("", 0, 0);
+    rps.startRound([uint256(0), 0, 0, 0, 0, 0, 0, 0], 0, 0);
   }
 }

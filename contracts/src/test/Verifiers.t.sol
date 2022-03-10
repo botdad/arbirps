@@ -10,7 +10,7 @@ contract VerifiersTest is DSTest {
   function setUp() public {}
 
   function testValidMove() public {
-    uint256[8] memory proofUints = [
+    uint256[8] memory proof = [
       0x1b1744bbdbc3bbda29b497f764a75b6d684f8bdabd517f4678aa643b53663811,
       0x05032ac277ee8aaaeb885e353b181a9bc07371ba6689eea2bced9383aa9d0b53,
       0x060623691aa139448b43b0684d1b1398135806ac1a57a0aea6c70833036c3003,
@@ -21,14 +21,13 @@ contract VerifiersTest is DSTest {
       0x28e2ac14711f581fa428f928831b17b81a86233e2506624c2c51ed37e13f19e2
     ];
 
-    bytes memory proof = abi.encode(proofUints);
     uint256 input = 0x03a2ab5cebb2b82a7a52f9c15b47c39445b081d55b5c2dd7704b4ca61884d125;
 
     assertTrue(AttestValidMoveVerifier.verifyProof(proof, input));
   }
 
   function testRevealMove() public {
-    uint256[8] memory proofUints = [
+    uint256[8] memory proof = [
       0x156bdd64db1c75bf3df7e0bbc5cae03ca6a75e3a3aae836efad58ebd05bbb762,
       0x1fea27956b608f4dc3f842298d182b68038c056d3927b831bf3b6c582a0e2f42,
       0x2d5daf17f26dde5e3016c988678a5a5bde9deb9f495cfb033b954b98c4836561,
@@ -39,7 +38,6 @@ contract VerifiersTest is DSTest {
       0x036d55cbc51a5648fadf79d16128c546ef775e507f83f3321b3f99eae34a7bee
     ];
 
-    bytes memory proof = abi.encode(proofUints);
     uint256 moveAttestation = 0x03a2ab5cebb2b82a7a52f9c15b47c39445b081d55b5c2dd7704b4ca61884d125;
 
     // assertTrue(RevealMoveVerifier.verifyProof(proof, input));

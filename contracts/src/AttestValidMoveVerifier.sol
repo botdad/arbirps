@@ -64,8 +64,8 @@ library AttestValidMoveVerifier {
     );
   }
 
-  function verifyProof(bytes memory proof, uint256 input) internal view returns (bool) {
-    uint256[8] memory p = abi.decode(proof, (uint256[8]));
+  function verifyProof(uint256[8] memory p, uint256 input) internal view returns (bool) {
+    // uint256[8] memory p = abi.decode(proof, (uint256[8]));
 
     // Make sure that each element in the proof is less than the prime q
     for (uint8 i = 0; i < p.length; i++) {

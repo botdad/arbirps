@@ -42,7 +42,6 @@ contract ArbibotRPS {
   /// -----------------------------------------------------------------------
   uint256 public totalRounds;
   mapping(uint256 => Round) public rounds;
-  mapping(uint256 => uint256) public nonces;
 
   constructor(address _arbibots) {
     arbibots = IMinimalERC721(_arbibots);
@@ -66,7 +65,7 @@ contract ArbibotRPS {
   /// @param moveAttestation The input signal that will be stored on chain
   /// and compared to when move is revealed
   function startRound(
-    bytes calldata proof,
+    uint256[8] calldata proof,
     uint256 arbibotId,
     uint256 moveAttestation
   ) external onlyArbibotOwner(arbibotId) {
@@ -77,16 +76,14 @@ contract ArbibotRPS {
       revert ErrorInvalidProof();
     }
 
-    unchecked {
-      nonces[arbibotId] += 1;
-    }
-
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
     Round memory round = Round(arbibotId, 0, 0, moveAttestation, DEAD_MOVE, DEAD_MOVE, false);
     rounds[totalRounds] = round;
-    totalRounds++;
+    unchecked {
+      ++totalRounds;
+    }
   }
 
   /// @notice Starts a new round and opens up play
@@ -129,7 +126,7 @@ contract ArbibotRPS {
   /// @param move1 move used in startRound to be revealed
   /// @param move1Attestation Attestation used in startRound
   function endRound(
-    bytes calldata proof,
+    uint256[8] calldata proof,
     uint256 arbibotId,
     uint256 roundId,
     uint8 move1,

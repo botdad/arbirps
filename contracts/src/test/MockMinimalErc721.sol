@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import "../IMinimalERC721.sol";
 
 contract MockMinimalErc721 is IMinimalERC721 {
-  address owner;
+  address public owner;
 
   function setOwner(address _owner) external {
     owner = _owner;

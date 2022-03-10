@@ -81,12 +81,10 @@ library RevealMoveVerifier {
   }
 
   function verifyProof(
-    bytes memory proof,
+    uint256[8] memory p,
     uint256 move,
     uint256 moveAttestation
   ) internal view returns (bool) {
-    uint256[8] memory p = abi.decode(proof, (uint256[8]));
-
     // Make sure that each element in the proof is less than the prime q
     for (uint8 i = 0; i < p.length; i++) {
       require(p[i] < Pairing.PRIME_Q, "verifier-proof-element-gte-prime-q");
