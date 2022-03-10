@@ -1,0 +1,205 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_arbibots",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "ErrorInvalidMove",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ErrorInvalidProof",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ErrorNoMove2",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ErrorRoundHasMove",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ErrorUnauthorized",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "DEAD_MOVE",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "arbibots",
+    "outputs": [
+      {
+        "internalType": "contract IMinimalERC721",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[8]",
+        "name": "proof",
+        "type": "uint256[8]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "arbibotId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "roundId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "move1",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "move1Attestation",
+        "type": "uint256"
+      }
+    ],
+    "name": "endRound",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "rounds",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "arbibotId1",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "arbibotId2",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "winner",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "move1Attestation",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "move1",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "move2",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bool",
+        "name": "ended",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[8]",
+        "name": "proof",
+        "type": "uint256[8]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "arbibotId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "moveAttestation",
+        "type": "uint256"
+      }
+    ],
+    "name": "startRound",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "arbibotId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "roundId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "move",
+        "type": "uint8"
+      }
+    ],
+    "name": "submitMove2",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalRounds",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
