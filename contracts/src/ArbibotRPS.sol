@@ -26,6 +26,7 @@ contract ArbibotRPS {
     uint256 arbibotId2;
     uint256 winner;
     uint256 move1Attestation;
+    uint256 nonce;
     uint8 move1;
     uint8 move2;
     bool ended;
@@ -41,7 +42,7 @@ contract ArbibotRPS {
   /// Storage variables
   /// -----------------------------------------------------------------------
   uint256 public totalRounds;
-  mapping(uint256 => Round) public rounds;
+  Round[] public rounds;
 
   constructor(address _arbibots) {
     arbibots = IMinimalERC721(_arbibots);
@@ -67,7 +68,8 @@ contract ArbibotRPS {
   function startRound(
     uint256[8] calldata proof,
     uint256 arbibotId,
-    uint256 moveAttestation
+    uint256 moveAttestation,
+    uint256 nonce
   ) external onlyArbibotOwner(arbibotId) {
     /// -------------------------------------------------------------------
     /// Validation
@@ -79,8 +81,8 @@ contract ArbibotRPS {
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
-    Round memory round = Round(arbibotId, 0, 0, moveAttestation, DEAD_MOVE, DEAD_MOVE, false);
-    rounds[totalRounds] = round;
+    Round memory round = Round(arbibotId, 0, 0, moveAttestation, nonce, DEAD_MOVE, DEAD_MOVE, false);
+    rounds.push(round);
     unchecked {
       ++totalRounds;
     }
@@ -180,5 +182,17 @@ contract ArbibotRPS {
     } // else tie, no winner
 
     rounds[roundId] = round;
+  }
+
+  /// @notice Gets per arbibot nonce for signature generation
+  /// @param arbibotId id of the arbibot
+  /// @return _nonce nonce to use for signature generation
+  function nonce(uint256 arbibotId) external view returns (uint256 _nonce) {
+    for (uint256 i = 0; i < rounds.length; i++) {
+      Round memory round = rounds[i];
+      if (round.arbibotId1 == arbibotId) {
+        _nonce++;
+      }
+    }
   }
 }
