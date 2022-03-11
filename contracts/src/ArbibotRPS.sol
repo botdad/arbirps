@@ -24,9 +24,9 @@ contract ArbibotRPS {
   struct Round {
     uint256 arbibotId1;
     uint256 arbibotId2;
-    uint256 winner;
     uint256 move1Attestation;
     uint256 nonce;
+    uint8 winner;
     uint8 move1;
     uint8 move2;
     bool ended;
@@ -81,7 +81,7 @@ contract ArbibotRPS {
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
-    Round memory round = Round(arbibotId, 0, 0, moveAttestation, nonce, DEAD_MOVE, DEAD_MOVE, false);
+    Round memory round = Round(arbibotId, 0, moveAttestation, nonce, 0, DEAD_MOVE, DEAD_MOVE, false);
     rounds.push(round);
     unchecked {
       ++totalRounds;
@@ -172,26 +172,36 @@ contract ArbibotRPS {
     if (round.move1 > round.move2) {
       unchecked {
         uint8 diff = round.move1 - round.move2;
-        round.winner = diff == 1 ? round.arbibotId1 : round.arbibotId2;
+        round.winner = diff == 1 ? 1 : 2;
       }
     } else if (round.move1 < round.move2) {
       unchecked {
         uint8 diff = round.move2 - round.move1;
-        round.winner = diff == 1 ? round.arbibotId2 : round.arbibotId1;
+        round.winner = diff == 1 ? 2 : 1;
       }
     } // else tie, no winner
 
     rounds[roundId] = round;
   }
 
+  /// -------------------------------------------------------------------
+  /// Views
+  /// -------------------------------------------------------------------
+
+  /// @notice Gets all rounds of play
+  /// @return rounds all rounds
+  function getRounds() external view returns (Round[] memory) {
+    return rounds;
+  }
+
   /// @notice Gets per arbibot nonce for signature generation
   /// @param arbibotId id of the arbibot
-  /// @return _nonce nonce to use for signature generation
-  function nonce(uint256 arbibotId) external view returns (uint256 _nonce) {
+  /// @return nonce nonce to use for signature generation
+  function getNonce(uint256 arbibotId) external view returns (uint256 nonce) {
     for (uint256 i = 0; i < rounds.length; i++) {
       Round memory round = rounds[i];
       if (round.arbibotId1 == arbibotId) {
-        _nonce++;
+        nonce++;
       }
     }
   }

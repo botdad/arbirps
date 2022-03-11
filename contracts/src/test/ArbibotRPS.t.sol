@@ -100,7 +100,7 @@ contract ArbibotRPSTest is DSTest {
     uint256[8] memory proof = moveProofUints[0];
     uint256 arbibotId = 0;
 
-    uint256 nonceBefore = rps.nonce(arbibotId);
+    uint256 nonceBefore = rps.getNonce(arbibotId);
     uint256 roundBefore = rps.totalRounds();
 
     rps.startRound(proof, arbibotId, moveAttestations[0], 0xb07dad);
@@ -108,9 +108,9 @@ contract ArbibotRPSTest is DSTest {
     (
       uint256 arbibotId1,
       uint256 arbibotId2,
-      uint256 winner,
       uint256 move1Attestation,
       uint256 nonce,
+      uint8 winner,
       uint8 move1,
       uint8 move2,
       bool ended
@@ -124,7 +124,7 @@ contract ArbibotRPSTest is DSTest {
     assertEq(move2, rps.DEAD_MOVE());
     assertTrue(!ended);
 
-    uint256 nonceAfter = rps.nonce(arbibotId);
+    uint256 nonceAfter = rps.getNonce(arbibotId);
     uint256 roundAfter = rps.totalRounds();
     assertEq(roundBefore + 1, roundAfter);
     assertEq(nonceBefore + 1, nonceAfter);
@@ -140,7 +140,7 @@ contract ArbibotRPSTest is DSTest {
     rps.startRound(proof, arbibotId1, moveAttestations[0], 0);
     rps.submitMove2(arbibotId2, roundId, move);
 
-    (, uint256 _arbibotId2, uint256 winner, , , uint8 move1, uint8 move2, bool ended) = rps.rounds(roundId);
+    (, uint256 _arbibotId2, , , uint8 winner, uint8 move1, uint8 move2, bool ended) = rps.rounds(roundId);
     assertEq(_arbibotId2, arbibotId2);
     assertEq(winner, 0);
     assertEq(move1, rps.DEAD_MOVE());
@@ -163,16 +163,16 @@ contract ArbibotRPSTest is DSTest {
     (
       uint256 _arbibotId1,
       uint256 _arbibotId2,
-      uint256 winner,
       uint256 move1Attestation,
       ,
+      uint8 winner,
       uint8 move1,
       uint8 move2,
       bool ended
     ) = rps.rounds(roundId);
     assertEq(_arbibotId1, arbibotId1);
     assertEq(_arbibotId2, arbibotId2);
-    assertEq(winner, arbibotId2);
+    assertEq(winner, 2);
     assertEq(move1Attestation, moveAttestations[0]);
     assertEq(move1, 0);
     assertEq(move2, 1);
@@ -193,39 +193,39 @@ contract ArbibotRPSTest is DSTest {
         rps.submitMove2(arbibotId2, roundId, move);
         rps.endRound(revealProof, arbibotId1, roundId, i, moveAttestations[i]);
 
-        (, , uint256 winner, , , , , ) = rps.rounds(roundId);
+        (, , , , uint8 winner, , , ) = rps.rounds(roundId);
         if (i == j) {
           assertEq(winner, 0);
         }
 
         if (i == 0 && j == 1) {
           // rock vs paper, paper wins
-          assertEq(winner, arbibotId2);
+          assertEq(winner, 2);
         }
 
         if (i == 0 && j == 2) {
           // rock vs scissor, rock wins
-          assertEq(winner, arbibotId1);
+          assertEq(winner, 1);
         }
 
         if (i == 1 && j == 0) {
           // paper vs rock, paper wins
-          assertEq(winner, arbibotId1);
+          assertEq(winner, 1);
         }
 
         if (i == 1 && j == 2) {
           // paper vs scissors, scissors wins
-          assertEq(winner, arbibotId2);
+          assertEq(winner, 2);
         }
 
         if (i == 2 && j == 0) {
           // scissors vs rock, rock wins
-          assertEq(winner, arbibotId2);
+          assertEq(winner, 2);
         }
 
         if (i == 2 && j == 1) {
           // scissors vs paper, scissors wins
-          assertEq(winner, arbibotId1);
+          assertEq(winner, 1);
         }
       }
     }
