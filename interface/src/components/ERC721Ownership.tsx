@@ -11,10 +11,9 @@ const DEFAULT_MOCK_ERC721_CONFIG = {
 
 export const ERC721Ownership = () => {
   const [newAddress, setNewAddress] = useState('')
-  const [{ data: readData, error: readError, loading: readLoading }, read] = useContractRead(
+  const [{ data: readData, error: readError, loading: readLoading }] = useContractRead(
     DEFAULT_MOCK_ERC721_CONFIG,
-    'owner',
-    { skip: true }
+    'owner'
   )
 
   const [{ error: writeError, loading: writeLoading }, write] = useContractWrite(DEFAULT_MOCK_ERC721_CONFIG, 'setOwner')
@@ -27,8 +26,7 @@ export const ERC721Ownership = () => {
 
   return (
     <div>
-      <button onClick={() => read()}>Get current owner</button>
-      <div>{readLoading ? 'loading owner' : readData}</div>
+      <div>Current owner: {readLoading ? 'loading' : readData}</div>
 
       <form onSubmit={handleSubmit}>
         <label>

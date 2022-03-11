@@ -1,18 +1,18 @@
 import { useCallback, useState } from 'react'
-import { AttestValidMoveProof, generateAttestValidMoveProof } from '../util/proofs'
+import { generateRevealMoveProof, RevealMoveProof } from '../util/proofs'
 
-export const useAttestProof = () => {
+export const useRevealProof = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | undefined>()
-  const [proof, setProof] = useState<AttestValidMoveProof | undefined>()
+  const [proof, setProof] = useState<RevealMoveProof | undefined>()
 
-  const generate = useCallback(async ({ move, secret }: { move: string; secret: string }) => {
+  const generate = useCallback(async ({ moveAttestation, secret }: { moveAttestation: string; secret: string }) => {
     setLoading(true)
     setError(undefined)
     setProof(undefined)
 
     try {
-      const proofAndInput = await generateAttestValidMoveProof({ move, secret })
+      const proofAndInput = await generateRevealMoveProof({ moveAttestation, secret })
 
       setProof(proofAndInput)
       setLoading(false)

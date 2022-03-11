@@ -17,6 +17,12 @@ export interface AttestValidMoveProof {
   moveAttestation: BigNumber
 }
 
+export interface RevealMoveProof {
+  proof: BigNumber[]
+  move: number
+  moveAttestation: BigNumber
+}
+
 const proofToBigNumberArray = (proof: SnarkJSProof): BigNumber[] => {
   return [
     BigNumber.from(proof.pi_a[0]),
@@ -45,11 +51,23 @@ export const generateAttestValidMoveProof = async (proofInput: {
 export const generateRevealMoveProof = async (proofInput: {
   moveAttestation: string
   secret: string
-}): Promise<{ proof: BigNumber[]; publicSignals: string[] }> => {
+}): Promise<RevealMoveProof> => {
   const { proof, publicSignals } = await window.snarkjs.groth16.fullProve(
     proofInput,
     REVEAL_WASM_PATH,
     REVEAL_ZKEY_PATH
   )
-  return { proof: proofToBigNumberArray(proof), publicSignals }
+
+  let i = 0
+  for (; i < 3; i++) {
+    if (publicSignals[i] === '1') {
+      break
+    }
+  }
+
+  if (i === 3) {
+    throw new Error('Invalid proof')
+  }
+
+  return { proof: proofToBigNumberArray(proof), move: i, moveAttestation: BigNumber.from(publicSignals[3]) }
 }
