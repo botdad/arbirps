@@ -102,27 +102,20 @@ contract ArbibotRPSTest is DSTest {
 
     uint256 nonceBefore = rps.getNonce(arbibotId);
     uint256 roundBefore = rps.totalRounds();
+    uint64 bt = uint64(block.timestamp);
 
-    rps.startRound(proof, arbibotId, moveAttestations[0], 0xb07dad);
+    rps.startRound(proof, arbibotId, moveAttestations[0], 0xb07dad, 0);
 
-    (
-      uint256 arbibotId1,
-      uint256 arbibotId2,
-      uint256 move1Attestation,
-      uint256 nonce,
-      uint8 winner,
-      uint8 move1,
-      uint8 move2,
-      bool ended
-    ) = rps.rounds(roundBefore);
-    assertEq(arbibotId1, arbibotId);
-    assertEq(arbibotId2, 0);
-    assertEq(winner, 0);
-    assertEq(move1Attestation, moveAttestations[0]);
-    assertEq(nonce, 0xb07dad);
-    assertEq(move1, rps.DEAD_MOVE());
-    assertEq(move2, rps.DEAD_MOVE());
-    assertTrue(!ended);
+    ArbibotRPS.Round memory round = rps.getRound(roundBefore);
+    assertEq(round.arbibotId1, arbibotId);
+    assertEq(round.arbibotId2, 0);
+    assertEq(round.winner, 0);
+    assertEq(round.startedAt, bt);
+    assertEq(round.move1Attestation, moveAttestations[0]);
+    assertEq(round.nonce, 0xb07dad);
+    assertEq(round.move1, rps.DEAD_MOVE());
+    assertEq(round.move2, rps.DEAD_MOVE());
+    assertTrue(!round.ended);
 
     uint256 nonceAfter = rps.getNonce(arbibotId);
     uint256 roundAfter = rps.totalRounds();
@@ -137,15 +130,15 @@ contract ArbibotRPSTest is DSTest {
     uint8 move = 1;
 
     uint256 roundId = rps.totalRounds();
-    rps.startRound(proof, arbibotId1, moveAttestations[0], 0);
+    rps.startRound(proof, arbibotId1, moveAttestations[0], 0, 0);
     rps.submitMove2(arbibotId2, roundId, move);
 
-    (, uint256 _arbibotId2, , , uint8 winner, uint8 move1, uint8 move2, bool ended) = rps.rounds(roundId);
-    assertEq(_arbibotId2, arbibotId2);
-    assertEq(winner, 0);
-    assertEq(move1, rps.DEAD_MOVE());
-    assertEq(move2, move);
-    assertTrue(!ended);
+    ArbibotRPS.Round memory round = rps.getRound(roundId);
+    assertEq(round.arbibotId2, arbibotId2);
+    assertEq(round.winner, 0);
+    assertEq(round.move1, rps.DEAD_MOVE());
+    assertEq(round.move2, move);
+    assertTrue(!round.ended);
   }
 
   function testEndRound() public {
@@ -156,27 +149,21 @@ contract ArbibotRPSTest is DSTest {
     uint8 move = 1;
 
     uint256 roundId = rps.totalRounds();
-    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0);
+    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0, 0);
     rps.submitMove2(arbibotId2, roundId, move);
     rps.endRound(revealProof, arbibotId1, roundId, 0, moveAttestations[0]);
 
-    (
-      uint256 _arbibotId1,
-      uint256 _arbibotId2,
-      uint256 move1Attestation,
-      ,
-      uint8 winner,
-      uint8 move1,
-      uint8 move2,
-      bool ended
-    ) = rps.rounds(roundId);
-    assertEq(_arbibotId1, arbibotId1);
-    assertEq(_arbibotId2, arbibotId2);
-    assertEq(winner, 2);
-    assertEq(move1Attestation, moveAttestations[0]);
-    assertEq(move1, 0);
-    assertEq(move2, 1);
-    assertTrue(ended);
+    uint64 bt = uint64(block.timestamp);
+
+    ArbibotRPS.Round memory round = rps.getRound(roundId);
+    assertEq(round.arbibotId1, arbibotId1);
+    assertEq(round.arbibotId2, arbibotId2);
+    assertEq(round.move2PlayedAt, bt);
+    assertEq(round.winner, 2);
+    assertEq(round.move1Attestation, moveAttestations[0]);
+    assertEq(round.move1, 0);
+    assertEq(round.move2, 1);
+    assertTrue(round.ended);
   }
 
   function testAllWinnerCombos() public {
@@ -189,43 +176,43 @@ contract ArbibotRPSTest is DSTest {
         uint8 move = j;
 
         uint256 roundId = rps.totalRounds();
-        rps.startRound(startProof, arbibotId1, moveAttestations[i], 0);
+        rps.startRound(startProof, arbibotId1, moveAttestations[i], 0, 0);
         rps.submitMove2(arbibotId2, roundId, move);
         rps.endRound(revealProof, arbibotId1, roundId, i, moveAttestations[i]);
 
-        (, , , , uint8 winner, , , ) = rps.rounds(roundId);
+        ArbibotRPS.Round memory round = rps.getRound(roundId);
         if (i == j) {
-          assertEq(winner, 0);
+          assertEq(round.winner, 0);
         }
 
         if (i == 0 && j == 1) {
           // rock vs paper, paper wins
-          assertEq(winner, 2);
+          assertEq(round.winner, 2);
         }
 
         if (i == 0 && j == 2) {
           // rock vs scissor, rock wins
-          assertEq(winner, 1);
+          assertEq(round.winner, 1);
         }
 
         if (i == 1 && j == 0) {
           // paper vs rock, paper wins
-          assertEq(winner, 1);
+          assertEq(round.winner, 1);
         }
 
         if (i == 1 && j == 2) {
           // paper vs scissors, scissors wins
-          assertEq(winner, 2);
+          assertEq(round.winner, 2);
         }
 
         if (i == 2 && j == 0) {
           // scissors vs rock, rock wins
-          assertEq(winner, 2);
+          assertEq(round.winner, 2);
         }
 
         if (i == 2 && j == 1) {
           // scissors vs paper, scissors wins
-          assertEq(winner, 1);
+          assertEq(round.winner, 1);
         }
       }
     }
@@ -238,7 +225,7 @@ contract ArbibotRPSTest is DSTest {
     uint8 move = 3;
 
     uint256 roundId = rps.totalRounds();
-    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0);
+    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0, 0);
 
     vm.expectRevert(getErrorBytes("ErrorInvalidMove()"));
     rps.submitMove2(arbibotId2, roundId, move);
@@ -252,7 +239,7 @@ contract ArbibotRPSTest is DSTest {
     uint8 move2 = 1;
 
     uint256 roundId = rps.totalRounds();
-    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0);
+    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0, 0);
     rps.submitMove2(arbibotId2, roundId, move1);
 
     vm.expectRevert(getErrorBytes("ErrorRoundHasMove()"));
@@ -267,16 +254,50 @@ contract ArbibotRPSTest is DSTest {
     uint8 move = 1;
 
     uint256 roundId = rps.totalRounds();
-    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0);
+    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0, 0);
     rps.submitMove2(arbibotId2, roundId, move);
     vm.expectRevert(getErrorBytes("ErrorUnauthorized()"));
     rps.endRound(revealProof, arbibotId1, roundId, 1, moveAttestations[1]);
+  }
+
+  function testExpiredBeforeRound2() public {
+    uint256[8] memory startProof = moveProofUints[0];
+    uint256 arbibotId1 = 0;
+    uint256 arbibotId2 = 1;
+    uint8 move2 = 1;
+
+    uint256 roundId = rps.totalRounds();
+
+    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0, 1);
+
+    vm.warp(block.timestamp + 2);
+
+    vm.expectRevert(getErrorBytes("ErrorDeadlineExpired()"));
+    rps.submitMove2(arbibotId2, roundId, move2);
+  }
+
+  function testExpiredBeforeEnd() public {
+    uint256[8] memory startProof = moveProofUints[0];
+    uint256[8] memory revealProof = revealProofUints[0];
+    uint256 arbibotId1 = 0;
+    uint256 arbibotId2 = 1;
+    uint8 move1 = 0;
+    uint8 move2 = 1;
+
+    uint256 roundId = rps.totalRounds();
+    rps.startRound(startProof, arbibotId1, moveAttestations[0], 0, 2);
+    vm.warp(block.timestamp + 1);
+    rps.submitMove2(arbibotId2, roundId, move2);
+
+    vm.warp(block.timestamp + 3);
+    vm.expectRevert(getErrorBytes("ErrorDeadlineExpired()"));
+    rps.endRound(revealProof, arbibotId1, roundId, move1, moveAttestations[0]);
   }
 
   function testNotOwner() public {
     erc721.setOwner(address(0));
 
     vm.expectRevert(getErrorBytes("ErrorUnauthorized()"));
-    rps.startRound([uint256(0), 0, 0, 0, 0, 0, 0, 0], 0, 0, 0);
+    rps.startRound([uint256(0), 0, 0, 0, 0, 0, 0, 0], 0, 0, 0, 0);
   }
 }

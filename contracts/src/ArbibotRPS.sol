@@ -17,6 +17,7 @@ contract ArbibotRPS {
   error ErrorRoundHasMove();
   error ErrorUnauthorized();
   error ErrorNoMove2();
+  error ErrorDeadlineExpired();
 
   /// -----------------------------------------------------------------------
   /// Custom types
@@ -25,10 +26,14 @@ contract ArbibotRPS {
     uint256 arbibotId1;
     uint256 arbibotId2;
     uint256 move1Attestation;
-    uint256 nonce;
-    uint8 winner;
+    // all of the following can fit together in a 256 bit word
+    uint32 nonce;
+    uint64 maxRoundTime;
+    uint64 startedAt;
+    uint64 move2PlayedAt;
     uint8 move1;
     uint8 move2;
+    uint8 winner;
     bool ended;
   }
 
@@ -69,7 +74,8 @@ contract ArbibotRPS {
     uint256[8] calldata proof,
     uint256 arbibotId,
     uint256 moveAttestation,
-    uint256 nonce
+    uint256 nonce,
+    uint256 maxRoundTime
   ) external onlyArbibotOwner(arbibotId) {
     /// -------------------------------------------------------------------
     /// Validation
@@ -81,7 +87,19 @@ contract ArbibotRPS {
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
-    Round memory round = Round(arbibotId, 0, moveAttestation, nonce, 0, DEAD_MOVE, DEAD_MOVE, false);
+    Round memory round = Round(
+      arbibotId,
+      0, // no arbibot2 id yet
+      moveAttestation,
+      uint32(nonce),
+      uint64(maxRoundTime),
+      uint64(block.timestamp),
+      0, // move 2 not played yet
+      DEAD_MOVE,
+      DEAD_MOVE,
+      0, // winner is tie until end
+      false
+    );
     rounds.push(round);
     unchecked {
       ++totalRounds;
@@ -111,11 +129,17 @@ contract ArbibotRPS {
       revert ErrorInvalidMove();
     }
 
+    uint64 blockTimestamp = uint64(block.timestamp);
+    if (blockTimestamp != 0 && blockTimestamp > round.maxRoundTime + round.startedAt) {
+      revert ErrorDeadlineExpired();
+    }
+
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
     round.arbibotId2 = arbibotId;
     round.move2 = move;
+    round.move2PlayedAt = blockTimestamp;
 
     rounds[roundId] = round;
   }
@@ -159,6 +183,11 @@ contract ArbibotRPS {
       revert ErrorInvalidMove();
     }
 
+    uint64 blockTimestamp = uint64(block.timestamp);
+    if (blockTimestamp != 0 && blockTimestamp > round.maxRoundTime + round.move2PlayedAt) {
+      revert ErrorDeadlineExpired();
+    }
+
     if (!RevealMoveVerifier.verifyProof(proof, move1, move1Attestation)) {
       revert ErrorInvalidProof();
     }
@@ -187,6 +216,13 @@ contract ArbibotRPS {
   /// -------------------------------------------------------------------
   /// Views
   /// -------------------------------------------------------------------
+
+  /// @notice Gets single round of play
+  /// @param roundId id of the round
+  /// @return round
+  function getRound(uint256 roundId) external view returns (Round memory) {
+    return rounds[roundId];
+  }
 
   /// @notice Gets all rounds of play
   /// @return rounds all rounds
