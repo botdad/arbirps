@@ -1,14 +1,8 @@
-import { useState } from 'react'
 import { useContractWrite } from 'wagmi'
 import { BigNumber } from 'ethers'
-import ArbibotRPSAbi from '../abis/ArbibotRPS.json'
-import { ARBIBOT_RPS_ADDRESS } from '../util/constants'
+import { ARBIBOT_RPS_CONFIG } from '../util/constants'
 
-const ARBIBOT_RPS_CONFIG = { addressOrName: ARBIBOT_RPS_ADDRESS, contractInterface: ArbibotRPSAbi }
-
-export const SubmitMove2 = ({ roundId }: { roundId: string }) => {
-  const [arbibotId, setArbibotId] = useState('')
-
+export const SubmitMove2 = ({ roundId, arbibotId }: { roundId: string; arbibotId: string }) => {
   const [{ error, loading }, submitMove2] = useContractWrite(ARBIBOT_RPS_CONFIG, 'submitMove2')
 
   const handleSubmit = (move: number) => {
@@ -17,10 +11,6 @@ export const SubmitMove2 = ({ roundId }: { roundId: string }) => {
 
   return (
     <>
-      <label>
-        Arbibot id:
-        <input type="text" value={arbibotId} onChange={(e) => setArbibotId(e.target.value)} />
-      </label>
       <button onClick={() => handleSubmit(0)} disabled={loading}>
         🪨
       </button>

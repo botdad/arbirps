@@ -6,8 +6,7 @@ import { ARBIBOT_RPS_CONFIG } from '../util/constants'
 import { keccak256 } from 'ethers/lib/utils'
 import { generateSignatureString } from '../util'
 
-export const StartRound = () => {
-  const [arbibotId, setArbibotId] = useState('')
+export const StartRound = ({ arbibotId }: { arbibotId: string }) => {
   const [sigRequired, setSigRequired] = useState(true)
 
   const [proofData, proofError, proofLoading, generateProof] = useAttestProof()
@@ -76,10 +75,6 @@ export const StartRound = () => {
 
   return (
     <>
-      <label>
-        Arbibot id:
-        <input type="text" value={arbibotId} onChange={(e) => setArbibotId(e.target.value)} />
-      </label>
       <button onClick={() => generateProofWrapper('0')} disabled={genProofLoading}>
         🪨
       </button>

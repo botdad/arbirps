@@ -131,11 +131,6 @@
           },
           {
             "internalType": "uint256",
-            "name": "winner",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
             "name": "move1Attestation",
             "type": "uint256"
           },
@@ -143,6 +138,11 @@
             "internalType": "uint256",
             "name": "nonce",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "winner",
+            "type": "uint8"
           },
           {
             "internalType": "uint8",
@@ -190,11 +190,6 @@
       },
       {
         "internalType": "uint256",
-        "name": "winner",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "move1Attestation",
         "type": "uint256"
       },
@@ -202,6 +197,11 @@
         "internalType": "uint256",
         "name": "nonce",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "winner",
+        "type": "uint8"
       },
       {
         "internalType": "uint8",

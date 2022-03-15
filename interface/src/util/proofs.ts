@@ -58,6 +58,8 @@ export const generateRevealMoveProof = async (proofInput: {
     REVEAL_ZKEY_PATH
   )
 
+  console.log(publicSignals)
+
   let i = 0
   for (; i < 3; i++) {
     if (publicSignals[i] === '1') {
