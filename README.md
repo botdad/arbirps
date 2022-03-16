@@ -4,13 +4,8 @@
 
 ```
 TODO:
-☐ interface
-☐ Placing BotGold (ERC20) Bets
+☐ styled interface
 ☐ Whitelisted player 2s
-☐ Deadline for round
-   * If no player 2 after deadline, player 1 takes back BotGold
-   * If player 1 does not reveal before deadline, player 2 can take BotGold
-☐ Helper view functions for the interface
 ```
 
 Implementation of an on chain rock paper scissors game using zero knowledge proofs for hiding the first throw until after the second throw has been played on chain. Oh and only Arbibots can play.

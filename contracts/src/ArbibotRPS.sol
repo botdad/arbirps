@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
+import "ds-test/test.sol";
+
 import "./AttestValidMoveVerifier.sol";
 import "./RevealMoveVerifier.sol";
 import "./IMinimalERC721.sol";
+import "./IMinimalERC20.sol";
 
 /// @title ArbibotRPS
 /// @author botdad
@@ -26,6 +29,7 @@ contract ArbibotRPS {
     uint256 arbibotId1;
     uint256 arbibotId2;
     uint256 move1Attestation;
+    uint256 wager;
     // all of the following can fit together in a 256 bit word
     uint32 nonce;
     uint64 maxRoundTime;
@@ -37,11 +41,37 @@ contract ArbibotRPS {
     bool ended;
   }
 
+  struct StartParams {
+    uint256[8] proof;
+    uint256 arbibotId;
+    uint256 moveAttestation;
+    uint32 nonce;
+    uint64 maxRoundTime;
+    // Permit signature fields
+    uint256 permitAmount;
+    uint256 permitDeadline;
+    uint8 permitV;
+    bytes32 permitR;
+    bytes32 permitS;
+  }
+
+  struct Move2Params {
+    uint256 arbibotId;
+    uint256 roundId;
+    uint8 move;
+    // Permit signature fields
+    uint256 permitDeadline;
+    uint8 permitV;
+    bytes32 permitR;
+    bytes32 permitS;
+  }
+
   /// -----------------------------------------------------------------------
   /// Immutable parameters
   /// -----------------------------------------------------------------------
   uint8 public immutable DEAD_MOVE = 3;
   IMinimalERC721 public immutable arbibots;
+  IMinimalERC20 public immutable botgold;
 
   /// -----------------------------------------------------------------------
   /// Storage variables
@@ -49,8 +79,9 @@ contract ArbibotRPS {
   uint256 public totalRounds;
   Round[] public rounds;
 
-  constructor(address _arbibots) {
+  constructor(address _arbibots, address _botgold) {
     arbibots = IMinimalERC721(_arbibots);
+    botgold = IMinimalERC20(_botgold);
   }
 
   modifier onlyArbibotOwner(uint256 arbibotId) {
@@ -66,33 +97,38 @@ contract ArbibotRPS {
 
   /// @notice Starts a new round and opens up play
   /// @dev Requires a valid AttestValidMove zk proof created off chain
-  /// @param proof ZK Proof
-  /// @param arbibotId id of the owned arbibot to use
-  /// @param moveAttestation The input signal that will be stored on chain
-  /// and compared to when move is revealed
-  function startRound(
-    uint256[8] calldata proof,
-    uint256 arbibotId,
-    uint256 moveAttestation,
-    uint256 nonce,
-    uint256 maxRoundTime
-  ) external onlyArbibotOwner(arbibotId) {
+  /// @param params The params necessary to start a round, encoded as `StartParams` in calldata
+  function startRound(StartParams calldata params) external onlyArbibotOwner(params.arbibotId) {
     /// -------------------------------------------------------------------
     /// Validation
     /// -------------------------------------------------------------------
-    if (!AttestValidMoveVerifier.verifyProof(proof, moveAttestation)) {
+    if (!AttestValidMoveVerifier.verifyProof(params.proof, params.moveAttestation)) {
       revert ErrorInvalidProof();
     }
 
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
+    if (params.permitAmount > 0) {
+      botgold.permit(
+        msg.sender,
+        address(this),
+        params.permitAmount,
+        params.permitDeadline,
+        params.permitV,
+        params.permitR,
+        params.permitS
+      );
+      botgold.transferFrom(msg.sender, address(this), params.permitAmount);
+    }
+
     Round memory round = Round(
-      arbibotId,
+      params.arbibotId,
       0, // no arbibot2 id yet
-      moveAttestation,
-      uint32(nonce),
-      uint64(maxRoundTime),
+      params.moveAttestation,
+      params.permitAmount,
+      params.nonce,
+      params.maxRoundTime,
       uint64(block.timestamp),
       0, // move 2 not played yet
       DEAD_MOVE,
@@ -108,24 +144,18 @@ contract ArbibotRPS {
 
   /// @notice Starts a new round and opens up play
   /// @dev Requires a valid AttestValidMove zk proof created off chain
-  /// @param arbibotId id of the owned arbibot to use
-  /// @param roundId roundId used in startRound
-  /// @param move RPS move
-  function submitMove2(
-    uint256 arbibotId,
-    uint256 roundId,
-    uint8 move
-  ) external onlyArbibotOwner(arbibotId) {
+  /// @param params The params necessary to submit a move2, encoded as `Move2Params` in calldata
+  function submitMove2(Move2Params calldata params) external onlyArbibotOwner(params.arbibotId) {
     /// -------------------------------------------------------------------
     /// Validation
     /// -------------------------------------------------------------------
-    Round memory round = rounds[roundId];
+    Round memory round = rounds[params.roundId];
 
     if (round.ended || round.move2 != DEAD_MOVE) {
       revert ErrorRoundHasMove();
     }
 
-    if (move > 2) {
+    if (params.move > 2) {
       revert ErrorInvalidMove();
     }
 
@@ -137,11 +167,24 @@ contract ArbibotRPS {
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
-    round.arbibotId2 = arbibotId;
-    round.move2 = move;
+    if (round.wager > 0) {
+      botgold.permit(
+        msg.sender,
+        address(this),
+        round.wager,
+        params.permitDeadline,
+        params.permitV,
+        params.permitR,
+        params.permitS
+      );
+      botgold.transferFrom(msg.sender, address(this), round.wager);
+    }
+
+    round.arbibotId2 = params.arbibotId;
+    round.move2 = params.move;
     round.move2PlayedAt = blockTimestamp;
 
-    rounds[roundId] = round;
+    rounds[params.roundId] = round;
   }
 
   /// @notice Starts a new round and opens up play
@@ -210,6 +253,81 @@ contract ArbibotRPS {
       }
     } // else tie, no winner
 
+    if (round.wager > 0) {
+      if (round.winner == 1) {
+        address owner = arbibots.ownerOf(round.arbibotId1);
+        botgold.transfer(owner, round.wager * 2);
+      } else if (round.winner == 2) {
+        address owner = arbibots.ownerOf(round.arbibotId2);
+        botgold.transfer(owner, round.wager * 2);
+      } else {
+        address owner1 = arbibots.ownerOf(round.arbibotId1);
+        address owner2 = arbibots.ownerOf(round.arbibotId2);
+        botgold.transfer(owner1, round.wager);
+        botgold.transfer(owner2, round.wager);
+      }
+    }
+
+    rounds[roundId] = round;
+  }
+
+  function getRefund(uint256 arbibotId, uint256 roundId) external onlyArbibotOwner(arbibotId) {
+    /// -------------------------------------------------------------------
+    /// Validation
+    /// -------------------------------------------------------------------
+    Round memory round = rounds[roundId];
+
+    if (round.maxRoundTime == 0) {
+      revert ErrorUnauthorized();
+    }
+
+    if (round.ended) {
+      revert ErrorUnauthorized();
+    }
+
+    if (round.arbibotId1 != arbibotId) {
+      revert ErrorUnauthorized();
+    }
+
+    if (block.timestamp < round.startedAt + round.maxRoundTime) {
+      revert ErrorUnauthorized();
+    }
+
+    if (round.move2 != DEAD_MOVE) {
+      revert ErrorUnauthorized();
+    }
+
+    // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
+    botgold.transfer(msg.sender, round.wager);
+    round.ended = true;
+    rounds[roundId] = round;
+  }
+
+  function collectForfeit(uint256 arbibotId, uint256 roundId) external onlyArbibotOwner(arbibotId) {
+    /// -------------------------------------------------------------------
+    /// Validation
+    /// -------------------------------------------------------------------
+    Round memory round = rounds[roundId];
+
+    if (round.maxRoundTime == 0) {
+      revert ErrorUnauthorized();
+    }
+
+    if (round.ended) {
+      revert ErrorUnauthorized();
+    }
+
+    if (round.arbibotId2 != arbibotId) {
+      revert ErrorUnauthorized();
+    }
+
+    if (block.timestamp < round.move2PlayedAt + round.maxRoundTime) {
+      revert ErrorUnauthorized();
+    }
+
+    // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
+    botgold.transfer(msg.sender, round.wager * 2);
+    round.ended = true;
     rounds[roundId] = round;
   }
 
