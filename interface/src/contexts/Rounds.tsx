@@ -1,7 +1,7 @@
 import { createContext, PropsWithChildren } from 'react'
 import { BigNumber } from 'ethers'
 import { useEffect, useState } from 'react'
-import { useContractRead } from 'wagmi'
+import { useContractRead, useContractEvent } from 'wagmi'
 import { ARBIBOT_RPS_CONFIG } from '../util/constants'
 
 export type ArbibotRPSRound = {
@@ -25,7 +25,10 @@ const Rounds = createContext(defaultValue)
 
 export const RoundsProvider = (props: PropsWithChildren<any>) => {
   const [rounds, setRounds] = useState<ArbibotRPSRound[]>([])
-  const [{ data, error, loading }] = useContractRead(ARBIBOT_RPS_CONFIG, 'getRounds')
+  const [{ data, error, loading }, getRounds] = useContractRead(ARBIBOT_RPS_CONFIG, 'getRounds')
+  useContractEvent(ARBIBOT_RPS_CONFIG, 'RoundStarted', () => getRounds())
+  useContractEvent(ARBIBOT_RPS_CONFIG, 'Move2Played', () => getRounds())
+  useContractEvent(ARBIBOT_RPS_CONFIG, 'RoundEnded', () => getRounds())
 
   useEffect(() => {
     if (data !== undefined) {

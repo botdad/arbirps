@@ -1,6 +1,8 @@
 import ArbibotRPSAbi from '../abis/ArbibotRPS.json'
 import ArbibotsAbi from '../abis/Arbibots.json'
 
+export const RPS_DEAD_MOVE = 3
+
 export const ARBIBOT_ADDRESS = '0xc1fcf330b4b4c773fa7e6835f681e8f798e9ebff'
 export const ARBIBOT_RPS_ADDRESS = '0x0165878a594ca255338adfa4d48449f69242eb8f'
 

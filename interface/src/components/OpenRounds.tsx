@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from 'react'
 import Rounds, { ArbibotRPSRound } from '../contexts/Rounds'
+import { RPS_DEAD_MOVE } from '../util/constants'
 import { BotSelector } from './BotSelector'
 
 export const OpenRounds = ({ onRoundSelected }: { onRoundSelected?: (round: ArbibotRPSRound) => void }) => {
@@ -14,7 +15,11 @@ export const OpenRounds = ({ onRoundSelected }: { onRoundSelected?: (round: Arbi
   }
 
   useEffect(() => {
-    setTokenIds(rounds.filter((round) => !round.ended).map((round) => round.arbibotId1.toNumber()))
+    setTokenIds(
+      rounds
+        .filter((round) => !round.ended && round.move2 === RPS_DEAD_MOVE)
+        .map((round) => round.arbibotId1.toNumber())
+    )
   }, [rounds])
 
   if (tokenIds.length === 0) {

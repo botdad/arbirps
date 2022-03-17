@@ -4,7 +4,7 @@ import { BigNumber } from 'ethers'
 import { keccak256 } from 'ethers/lib/utils'
 import { useAttestProof } from '../hooks/useAttestProof'
 import { ARBIBOT_RPS_CONFIG } from '../util/constants'
-import { generateSignatureString } from '../util'
+import { generateSignatureString } from '../util/generateSignatureString'
 import { ArbibotRPS } from '../abis/types/ArbibotRPS'
 
 export const StartRound = ({ arbibotId }: { arbibotId: string }) => {

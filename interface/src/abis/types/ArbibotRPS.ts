@@ -13,7 +13,7 @@ import {
   Signer,
   utils,
 } from "ethers";
-import { FunctionFragment, Result } from "@ethersproject/abi";
+import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
@@ -231,8 +231,42 @@ export interface ArbibotRPSInterface extends utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "Move2Played(uint256,uint256)": EventFragment;
+    "RoundEnded(uint256,uint256)": EventFragment;
+    "RoundStarted(uint256,uint256,uint256,uint64)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Move2Played"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoundEnded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoundStarted"): EventFragment;
 }
+
+export type Move2PlayedEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  { roundId: BigNumber; arbibotId2: BigNumber }
+>;
+
+export type Move2PlayedEventFilter = TypedEventFilter<Move2PlayedEvent>;
+
+export type RoundEndedEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  { roundId: BigNumber; winner: BigNumber }
+>;
+
+export type RoundEndedEventFilter = TypedEventFilter<RoundEndedEvent>;
+
+export type RoundStartedEvent = TypedEvent<
+  [BigNumber, BigNumber, BigNumber, BigNumber],
+  {
+    roundId: BigNumber;
+    arbibotId1: BigNumber;
+    wager: BigNumber;
+    maxRoundTime: BigNumber;
+  }
+>;
+
+export type RoundStartedEventFilter = TypedEventFilter<RoundStartedEvent>;
 
 export interface ArbibotRPS extends BaseContract {
   contractName: "ArbibotRPS";
@@ -509,7 +543,38 @@ export interface ArbibotRPS extends BaseContract {
     totalRounds(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
-  filters: {};
+  filters: {
+    "Move2Played(uint256,uint256)"(
+      roundId?: BigNumberish | null,
+      arbibotId2?: BigNumberish | null
+    ): Move2PlayedEventFilter;
+    Move2Played(
+      roundId?: BigNumberish | null,
+      arbibotId2?: BigNumberish | null
+    ): Move2PlayedEventFilter;
+
+    "RoundEnded(uint256,uint256)"(
+      roundId?: BigNumberish | null,
+      winner?: BigNumberish | null
+    ): RoundEndedEventFilter;
+    RoundEnded(
+      roundId?: BigNumberish | null,
+      winner?: BigNumberish | null
+    ): RoundEndedEventFilter;
+
+    "RoundStarted(uint256,uint256,uint256,uint64)"(
+      roundId?: BigNumberish | null,
+      arbibotId1?: BigNumberish | null,
+      wager?: null,
+      maxRoundTime?: null
+    ): RoundStartedEventFilter;
+    RoundStarted(
+      roundId?: BigNumberish | null,
+      arbibotId1?: BigNumberish | null,
+      wager?: null,
+      maxRoundTime?: null
+    ): RoundStartedEventFilter;
+  };
 
   estimateGas: {
     DEAD_MOVE(overrides?: CallOverrides): Promise<BigNumber>;

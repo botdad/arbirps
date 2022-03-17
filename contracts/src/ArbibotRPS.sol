@@ -23,6 +23,13 @@ contract ArbibotRPS {
   error ErrorDeadlineExpired();
 
   /// -----------------------------------------------------------------------
+  /// Events
+  /// -----------------------------------------------------------------------
+  event RoundStarted(uint256 indexed roundId, uint256 indexed arbibotId1, uint256 wager, uint64 maxRoundTime);
+  event Move2Played(uint256 indexed roundId, uint256 indexed arbibotId2);
+  event RoundEnded(uint256 indexed roundId, uint256 indexed winner);
+
+  /// -----------------------------------------------------------------------
   /// Custom types
   /// -----------------------------------------------------------------------
   struct Round {
@@ -117,19 +124,6 @@ contract ArbibotRPS {
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
-    if (params.permitAmount > 0) {
-      botgold.permit(
-        msg.sender,
-        address(this),
-        params.permitAmount,
-        params.permitDeadline,
-        params.permitV,
-        params.permitR,
-        params.permitS
-      );
-      botgold.transferFrom(msg.sender, address(this), params.permitAmount);
-    }
-
     Round memory round = Round(
       params.arbibotId,
       0, // no arbibot2 id yet
@@ -148,6 +142,24 @@ contract ArbibotRPS {
     unchecked {
       ++totalRounds;
     }
+
+    /// -------------------------------------------------------------------
+    /// Effects
+    /// -------------------------------------------------------------------
+    if (params.permitAmount > 0) {
+      botgold.permit(
+        msg.sender,
+        address(this),
+        params.permitAmount,
+        params.permitDeadline,
+        params.permitV,
+        params.permitR,
+        params.permitS
+      );
+      botgold.transferFrom(msg.sender, address(this), params.permitAmount);
+    }
+
+    emit RoundStarted(rounds.length - 1, params.arbibotId, params.permitAmount, params.maxRoundTime);
   }
 
   /// @notice Starts a new round and opens up play
@@ -175,6 +187,15 @@ contract ArbibotRPS {
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
+    round.arbibotId2 = params.arbibotId;
+    round.move2 = params.move;
+    round.move2PlayedAt = blockTimestamp;
+
+    rounds[params.roundId] = round;
+
+    /// -------------------------------------------------------------------
+    /// Effects
+    /// -------------------------------------------------------------------
     if (round.wager > 0) {
       botgold.permit(
         msg.sender,
@@ -188,11 +209,7 @@ contract ArbibotRPS {
       botgold.transferFrom(msg.sender, address(this), round.wager);
     }
 
-    round.arbibotId2 = params.arbibotId;
-    round.move2 = params.move;
-    round.move2PlayedAt = blockTimestamp;
-
-    rounds[params.roundId] = round;
+    emit Move2Played(params.roundId, params.arbibotId);
   }
 
   /// @notice Starts a new round and opens up play
@@ -251,6 +268,11 @@ contract ArbibotRPS {
       }
     } // else tie, no winner
 
+    rounds[params.roundId] = round;
+
+    /// -------------------------------------------------------------------
+    /// Effects
+    /// -------------------------------------------------------------------
     if (round.wager > 0) {
       if (round.winner == 1) {
         address owner = arbibots.ownerOf(round.arbibotId1);
@@ -266,7 +288,7 @@ contract ArbibotRPS {
       }
     }
 
-    rounds[params.roundId] = round;
+    emit RoundEnded(params.roundId, round.winner);
   }
 
   /// @notice Returns wager if there is a deadline for play and it is exceeded
@@ -309,6 +331,8 @@ contract ArbibotRPS {
     /// -------------------------------------------------------------------
     // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
     botgold.transfer(msg.sender, round.wager);
+
+    emit RoundEnded(roundId, 0);
   }
 
   /// @notice Claim winnings for player 2 if player 1 has not revealed the winner in time
@@ -347,6 +371,8 @@ contract ArbibotRPS {
     /// -------------------------------------------------------------------
     // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
     botgold.transfer(msg.sender, round.wager * 2);
+
+    emit RoundEnded(roundId, 2);
   }
 
   /// -------------------------------------------------------------------
