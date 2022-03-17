@@ -5,6 +5,11 @@
         "internalType": "address",
         "name": "_arbibots",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_botgold",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -67,12 +72,20 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "botgold",
+    "outputs": [
       {
-        "internalType": "uint256[8]",
-        "name": "proof",
-        "type": "uint256[8]"
-      },
+        "internalType": "contract IMinimalERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
         "internalType": "uint256",
         "name": "arbibotId",
@@ -82,16 +95,46 @@
         "internalType": "uint256",
         "name": "roundId",
         "type": "uint256"
-      },
+      }
+    ],
+    "name": "collectForfeit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
-        "internalType": "uint8",
-        "name": "move1",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint256",
-        "name": "move1Attestation",
-        "type": "uint256"
+        "components": [
+          {
+            "internalType": "uint256[8]",
+            "name": "proof",
+            "type": "uint256[8]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "arbibotId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roundId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "move1",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "move1Attestation",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct ArbibotRPS.EndParams",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "endRound",
@@ -122,6 +165,24 @@
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "arbibotId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "roundId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getRefund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "roundId",
         "type": "uint256"
       }
@@ -143,6 +204,11 @@
           {
             "internalType": "uint256",
             "name": "move1Attestation",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "wager",
             "type": "uint256"
           },
           {
@@ -213,6 +279,11 @@
           {
             "internalType": "uint256",
             "name": "move1Attestation",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "wager",
             "type": "uint256"
           },
           {
@@ -290,6 +361,11 @@
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "wager",
+        "type": "uint256"
+      },
+      {
         "internalType": "uint32",
         "name": "nonce",
         "type": "uint32"
@@ -336,29 +412,61 @@
   {
     "inputs": [
       {
-        "internalType": "uint256[8]",
-        "name": "proof",
-        "type": "uint256[8]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "arbibotId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "moveAttestation",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "nonce",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "maxRoundTime",
-        "type": "uint256"
+        "components": [
+          {
+            "internalType": "uint256[8]",
+            "name": "proof",
+            "type": "uint256[8]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "arbibotId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "moveAttestation",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint32",
+            "name": "nonce",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "maxRoundTime",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint256",
+            "name": "permitAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "permitDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "permitV",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "permitR",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "permitS",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct ArbibotRPS.StartParams",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "startRound",
@@ -369,19 +477,46 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "arbibotId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "roundId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "move",
-        "type": "uint8"
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "arbibotId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roundId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "move",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "permitDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "permitV",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "permitR",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "permitS",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct ArbibotRPS.Move2Params",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "submitMove2",

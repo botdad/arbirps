@@ -66,6 +66,14 @@ contract ArbibotRPS {
     bytes32 permitS;
   }
 
+  struct EndParams {
+    uint256[8] proof;
+    uint256 arbibotId;
+    uint256 roundId;
+    uint8 move1;
+    uint256 move1Attestation;
+  }
+
   /// -----------------------------------------------------------------------
   /// Immutable parameters
   /// -----------------------------------------------------------------------
@@ -160,7 +168,7 @@ contract ArbibotRPS {
     }
 
     uint64 blockTimestamp = uint64(block.timestamp);
-    if (blockTimestamp != 0 && blockTimestamp > round.maxRoundTime + round.startedAt) {
+    if (round.maxRoundTime != 0 && blockTimestamp > round.maxRoundTime + round.startedAt) {
       revert ErrorDeadlineExpired();
     }
 
@@ -189,28 +197,18 @@ contract ArbibotRPS {
 
   /// @notice Starts a new round and opens up play
   /// @dev Requires a valid RevealMove zk proof created off chain
-  /// @param proof ZK Proof
-  /// @param arbibotId id of the owned arbibot to use
-  /// @param roundId roundId used in startRound
-  /// @param move1 move used in startRound to be revealed
-  /// @param move1Attestation Attestation used in startRound
-  function endRound(
-    uint256[8] calldata proof,
-    uint256 arbibotId,
-    uint256 roundId,
-    uint8 move1,
-    uint256 move1Attestation
-  ) external onlyArbibotOwner(arbibotId) {
+  /// @param params The params necessary to end a round, encoded as `EndParams` in calldata
+  function endRound(EndParams calldata params) external onlyArbibotOwner(params.arbibotId) {
     /// -------------------------------------------------------------------
     /// Validation
     /// -------------------------------------------------------------------
-    Round memory round = rounds[roundId];
+    Round memory round = rounds[params.roundId];
 
-    if (round.arbibotId1 != arbibotId) {
+    if (round.arbibotId1 != params.arbibotId) {
       revert ErrorUnauthorized();
     }
 
-    if (round.move1Attestation != move1Attestation) {
+    if (round.move1Attestation != params.move1Attestation) {
       revert ErrorUnauthorized();
     }
 
@@ -222,23 +220,23 @@ contract ArbibotRPS {
       revert ErrorNoMove2();
     }
 
-    if (move1 == DEAD_MOVE) {
+    if (params.move1 == DEAD_MOVE) {
       revert ErrorInvalidMove();
     }
 
     uint64 blockTimestamp = uint64(block.timestamp);
-    if (blockTimestamp != 0 && blockTimestamp > round.maxRoundTime + round.move2PlayedAt) {
+    if (round.maxRoundTime != 0 && blockTimestamp > round.maxRoundTime + round.move2PlayedAt) {
       revert ErrorDeadlineExpired();
     }
 
-    if (!RevealMoveVerifier.verifyProof(proof, move1, move1Attestation)) {
+    if (!RevealMoveVerifier.verifyProof(params.proof, params.move1, params.move1Attestation)) {
       revert ErrorInvalidProof();
     }
 
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
-    round.move1 = move1;
+    round.move1 = params.move1;
     round.ended = true;
 
     if (round.move1 > round.move2) {
@@ -268,7 +266,7 @@ contract ArbibotRPS {
       }
     }
 
-    rounds[roundId] = round;
+    rounds[params.roundId] = round;
   }
 
   function getRefund(uint256 arbibotId, uint256 roundId) external onlyArbibotOwner(arbibotId) {

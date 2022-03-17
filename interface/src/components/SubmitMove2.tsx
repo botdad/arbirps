@@ -1,12 +1,22 @@
 import { useContractWrite } from 'wagmi'
-import { BigNumber } from 'ethers'
 import { ARBIBOT_RPS_CONFIG } from '../util/constants'
+import { ArbibotRPS } from '../abis/types'
 
 export const SubmitMove2 = ({ roundId, arbibotId }: { roundId: string; arbibotId: string }) => {
   const [{ error, loading }, submitMove2] = useContractWrite(ARBIBOT_RPS_CONFIG, 'submitMove2')
 
   const handleSubmit = (move: number) => {
-    submitMove2({ args: [BigNumber.from(arbibotId), BigNumber.from(roundId), move] })
+    const move2Params: ArbibotRPS.Move2ParamsStruct = {
+      arbibotId,
+      roundId,
+      move,
+      permitDeadline: 0,
+      permitV: 0,
+      permitR: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      permitS: '0x0000000000000000000000000000000000000000000000000000000000000000',
+    }
+
+    submitMove2({ args: [move2Params] })
   }
 
   return (

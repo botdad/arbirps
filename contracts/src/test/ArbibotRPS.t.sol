@@ -185,7 +185,7 @@ contract ArbibotRPSTest is DSTest {
     uint256 roundId = rps.totalRounds();
     rps.startRound(ArbibotRPS.StartParams(startProof, arbibotId1, moveAttestations[0], 0, 0, 0, 0, 0, "", ""));
     rps.submitMove2(ArbibotRPS.Move2Params(arbibotId2, roundId, move, 0, 0, "", ""));
-    rps.endRound(revealProof, arbibotId1, roundId, 0, moveAttestations[0]);
+    rps.endRound(ArbibotRPS.EndParams(revealProof, arbibotId1, roundId, 0, moveAttestations[0]));
 
     uint64 bt = uint64(block.timestamp);
 
@@ -212,7 +212,7 @@ contract ArbibotRPSTest is DSTest {
         uint256 roundId = rps.totalRounds();
         rps.startRound(ArbibotRPS.StartParams(startProof, arbibotId1, moveAttestations[i], 0, 0, 0, 0, 0, "", ""));
         rps.submitMove2(ArbibotRPS.Move2Params(arbibotId2, roundId, move, 0, 0, "", ""));
-        rps.endRound(revealProof, arbibotId1, roundId, i, moveAttestations[i]);
+        rps.endRound(ArbibotRPS.EndParams(revealProof, arbibotId1, roundId, i, moveAttestations[i]));
 
         ArbibotRPS.Round memory round = rps.getRound(roundId);
         if (i == j) {
@@ -291,7 +291,7 @@ contract ArbibotRPSTest is DSTest {
     rps.startRound(ArbibotRPS.StartParams(startProof, arbibotId1, moveAttestations[0], 0, 0, 0, 0, 0, "", ""));
     rps.submitMove2(ArbibotRPS.Move2Params(arbibotId2, roundId, move, 0, 0, "", ""));
     vm.expectRevert(getErrorBytes("ErrorUnauthorized()"));
-    rps.endRound(revealProof, arbibotId1, roundId, 1, moveAttestations[1]);
+    rps.endRound(ArbibotRPS.EndParams(revealProof, arbibotId1, roundId, 1, moveAttestations[1]));
   }
 
   function testExpiredBeforeRound2() public {
@@ -325,7 +325,7 @@ contract ArbibotRPSTest is DSTest {
 
     vm.warp(block.timestamp + 3);
     vm.expectRevert(getErrorBytes("ErrorDeadlineExpired()"));
-    rps.endRound(revealProof, arbibotId1, roundId, move1, moveAttestations[0]);
+    rps.endRound(ArbibotRPS.EndParams(revealProof, arbibotId1, roundId, move1, moveAttestations[0]));
   }
 
   function testWagerPayout() public {
@@ -389,7 +389,7 @@ contract ArbibotRPSTest is DSTest {
     assertEq(erc20.balanceOf(otherAddress), 0);
 
     vm.prank(otherAddress);
-    rps.endRound(revealProofUints[0], arbibotId1, roundId, move1, moveAttestations[0]);
+    rps.endRound(ArbibotRPS.EndParams(revealProofUints[0], arbibotId1, roundId, move1, moveAttestations[0]));
 
     assertEq(erc20.balanceOf(someAddress), 0);
     assertEq(erc20.balanceOf(otherAddress), 2);
@@ -456,7 +456,7 @@ contract ArbibotRPSTest is DSTest {
     assertEq(erc20.balanceOf(otherAddress), 0);
 
     vm.prank(someAddress);
-    rps.endRound(revealProofUints[0], arbibotId1, roundId, move1, moveAttestations[0]);
+    rps.endRound(ArbibotRPS.EndParams(revealProofUints[0], arbibotId1, roundId, move1, moveAttestations[0]));
 
     assertEq(erc20.balanceOf(someAddress), 1);
     assertEq(erc20.balanceOf(otherAddress), 1);

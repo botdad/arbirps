@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useContractRead, useContractWrite, useSignMessage } from 'wagmi'
 import { BigNumber } from 'ethers'
+import { keccak256 } from 'ethers/lib/utils'
 import { useAttestProof } from '../hooks/useAttestProof'
 import { ARBIBOT_RPS_CONFIG } from '../util/constants'
-import { keccak256 } from 'ethers/lib/utils'
 import { generateSignatureString } from '../util'
+import { ArbibotRPS } from '../abis/types/ArbibotRPS'
 
 export const StartRound = ({ arbibotId }: { arbibotId: string }) => {
   const [sigRequired, setSigRequired] = useState(true)
@@ -29,14 +30,22 @@ export const StartRound = ({ arbibotId }: { arbibotId: string }) => {
   const genProofLoading = proofLoading || nonceLoading || signLoading
 
   const startRoundWrapper = () => {
-    const args = [
-      proofData?.proof,
-      BigNumber.from(arbibotId),
-      proofData?.moveAttestation,
-      nonceData as any as BigNumber,
-    ]
-    console.log(JSON.stringify(args, null, 2))
-    startRound({ args })
+    if (proofData) {
+      const startParams: ArbibotRPS.StartParamsStruct = {
+        proof: proofData.proof,
+        arbibotId: arbibotId,
+        moveAttestation: proofData.moveAttestation,
+        nonce: nonceData as any as BigNumber,
+        maxRoundTime: 0,
+        permitAmount: 0,
+        permitDeadline: 0,
+        permitV: 0,
+        permitR: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        permitS: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      }
+
+      startRound({ args: [startParams] })
+    }
   }
 
   const generateProofWrapper = async (move: string) => {

@@ -6,6 +6,7 @@ import { generateSignatureString } from '../util'
 import { RevealMoveProof } from '../util/proofs'
 import { ARBIBOT_RPS_CONFIG } from '../util/constants'
 import { BigNumber } from 'ethers'
+import { ArbibotRPS } from '../abis/types'
 
 export const EndRound = ({
   nonce,
@@ -40,15 +41,16 @@ export const EndRound = ({
   }, [proofData, onGeneration])
 
   const endRoundWrapper = () => {
-    const args = [
-      proofData?.proof,
-      BigNumber.from(arbibotId),
-      BigNumber.from(roundId),
-      proofData?.move,
-      proofData?.moveAttestation,
-    ]
-    console.log(JSON.stringify(args, null, 2))
-    endRound({ args })
+    if (proofData) {
+      const endParams: ArbibotRPS.EndParamsStruct = {
+        proof: proofData.proof,
+        arbibotId,
+        roundId,
+        move1: proofData.move,
+        move1Attestation: proofData.moveAttestation,
+      }
+      endRound({ args: [endParams] })
+    }
   }
 
   const genProofLoading = proofLoading || signLoading
