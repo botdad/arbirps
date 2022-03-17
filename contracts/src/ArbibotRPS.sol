@@ -269,6 +269,9 @@ contract ArbibotRPS {
     rounds[params.roundId] = round;
   }
 
+  /// @notice Returns wager if there is a deadline for play and it is exceeded
+  /// @param arbibotId token id of original arbibot player
+  /// @param roundId the id of the round in a refundable state
   function getRefund(uint256 arbibotId, uint256 roundId) external onlyArbibotOwner(arbibotId) {
     /// -------------------------------------------------------------------
     /// Validation
@@ -295,12 +298,22 @@ contract ArbibotRPS {
       revert ErrorUnauthorized();
     }
 
-    // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
-    botgold.transfer(msg.sender, round.wager);
+    /// -------------------------------------------------------------------
+    /// State updates
+    /// -------------------------------------------------------------------
     round.ended = true;
     rounds[roundId] = round;
+
+    /// -------------------------------------------------------------------
+    /// Effects
+    /// -------------------------------------------------------------------
+    // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
+    botgold.transfer(msg.sender, round.wager);
   }
 
+  /// @notice Claim winnings for player 2 if player 1 has not revealed the winner in time
+  /// @param arbibotId token id of original arbibot player
+  /// @param roundId the id of the round in a forfeit state
   function collectForfeit(uint256 arbibotId, uint256 roundId) external onlyArbibotOwner(arbibotId) {
     /// -------------------------------------------------------------------
     /// Validation
@@ -323,10 +336,17 @@ contract ArbibotRPS {
       revert ErrorUnauthorized();
     }
 
-    // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
-    botgold.transfer(msg.sender, round.wager * 2);
+    /// -------------------------------------------------------------------
+    /// State updates
+    /// -------------------------------------------------------------------
     round.ended = true;
     rounds[roundId] = round;
+
+    /// -------------------------------------------------------------------
+    /// Effects
+    /// -------------------------------------------------------------------
+    // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
+    botgold.transfer(msg.sender, round.wager * 2);
   }
 
   /// -------------------------------------------------------------------

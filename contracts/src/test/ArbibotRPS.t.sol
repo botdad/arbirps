@@ -157,7 +157,7 @@ contract ArbibotRPSTest is DSTest {
     assertEq(nonceBefore + 1, nonceAfter);
   }
 
-  function testsubmitMove2() public {
+  function testSubmitMove2() public {
     uint256[8] memory proof = moveProofUints[0];
     uint256 arbibotId1 = 0;
     uint256 arbibotId2 = 1;
@@ -395,7 +395,7 @@ contract ArbibotRPSTest is DSTest {
     assertEq(erc20.balanceOf(otherAddress), 2);
   }
 
-  function testWagerPayoutonTie() public {
+  function testWagerPayoutOnTie() public {
     uint256 amount = 1;
     uint256 arbibotId1 = 0;
     uint256 arbibotId2 = 2;
