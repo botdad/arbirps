@@ -36,3 +36,36 @@
     transform: rotate(360deg);
   }
 }
+
+@keyframes spin {
+  from {
+    transform: scale3d(1.4, 1.4, 1) rotateZ(0deg);
+  }
+  to {
+    transform: scale3d(1.4, 1.4, 1) rotateZ(360deg);
+  }
+}
+@-moz-keyframes spin {
+  from {
+    -moz-transform: scale3d(2, 2, 1) rotateZ(0deg);
+  }
+  to {
+    -moz-transform: scale3d(2, 2, 1) rotateZ(360deg);
+  }
+}
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: scale3d(2, 2, 1) rotateZ(0deg);
+  }
+  to {
+    -webkit-transform: scale3d(2, 2, 1) rotateZ(360deg);
+  }
+}
+@-ms-keyframes spin {
+  from {
+    -ms-transform: scale3d(2, 2, 1) rotateZ(0deg);
+  }
+  to {
+    -ms-transform: scale3d(2, 2, 1) rotateZ(360deg);
+  }
+}
