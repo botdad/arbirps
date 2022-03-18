@@ -58,18 +58,9 @@ export const generateRevealMoveProof = async (proofInput: {
     REVEAL_ZKEY_PATH
   )
 
-  console.log(publicSignals)
-
-  let i = 0
-  for (; i < 3; i++) {
-    if (publicSignals[i] === '1') {
-      break
-    }
+  return {
+    proof: proofToBigNumberArray(proof),
+    move: parseInt(publicSignals[0], 10),
+    moveAttestation: BigNumber.from(publicSignals[1]),
   }
-
-  if (i === 3) {
-    throw new Error('Invalid proof')
-  }
-
-  return { proof: proofToBigNumberArray(proof), move: i, moveAttestation: BigNumber.from(publicSignals[3]) }
 }

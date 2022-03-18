@@ -19,7 +19,7 @@ node build/attestValidMove_js/generate_witness.js \
     circuits/tmp/attestValidMove_proof.json && \
   yarn -s run snarkjs generatecall \
     circuits/tmp/attestValidMove_public.json \
-    circuits/tmp/attestValidMove_proof.json | sed 's/^/\[/; s/$/\]/' | jq -r
+    circuits/tmp/attestValidMove_proof.json | sed 's/^/\[/; s/$/\]/' | jq -r "flatten"| tr -d '"'
 
 attestation=`jq -r ".[0]" tmp/attestValidMove_public.json`
 
@@ -40,4 +40,4 @@ node build/revealMove_js/generate_witness.js \
     circuits/tmp/revealMove_proof.json && \
   yarn -s run snarkjs generatecall \
     circuits/tmp/revealMove_public.json \
-    circuits/tmp/revealMove_proof.json | sed 's/^/\[/; s/$/\]/' | jq -r
+    circuits/tmp/revealMove_proof.json | sed 's/^/\[/; s/$/\]/' | jq -r "flatten" | tr -d '"'
