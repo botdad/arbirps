@@ -4,22 +4,30 @@ import { WagmiProvider, chain, Connector } from 'wagmi'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { WalletLinkConnector } from 'wagmi/connectors/walletLink'
+import Container from 'react-bootstrap/Container'
+import Button from 'react-bootstrap/Button'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
+import styled from 'styled-components'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 
-import './App.css'
+import './App.scss'
 
-import { WagmiConnect } from './components/WagmiConnect'
-import { ConnectionInfo } from './components/ConnectionInfo'
-import { StartRound } from './components/StartRound'
+import { StartRound } from './pages/StartRound'
 import { ConnectedWrapper } from './components/ConnectedWrapper'
 import { OpenRounds } from './components/OpenRounds'
 import { SubmitMove2 } from './components/SubmitMove2'
 import { EndRound } from './components/EndRound'
 import { RevealMoveProof } from './util/proofs'
-import { BotSelector } from './components/BotSelector'
 import { OwnedBotSelector } from './components/OwnedBotSelector'
 import { OwnedBotsProvider } from './contexts/OwnedBots'
 import { ArbibotRPSRound, RoundsProvider } from './contexts/Rounds'
 import { EndableRounds } from './components/EndableRounds'
+import { GlobalErrorProvider } from './contexts/GlobalError'
+import { ErrorModal } from './components/ErrorModal'
+import { Nav } from './components/Nav'
+
+const CloudBox = styled.div``
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -83,65 +91,51 @@ function App() {
     setRoundId(round.roundId.toString())
     setMoveAttestation(round.move1Attestation.toHexString())
   }
+  /*
+
+                    {tab === 1 && (
+                      <div>
+                        <h1>Player2: Submit move 2</h1>
+                        <p>Choose opponent:</p>
+                        <OpenRounds onRoundSelected={onRoundSelected}></OpenRounds>
+                        <p>Choose your bot:</p>
+                        <OwnedBotSelector onBotSelected={(id) => setArbibotId(`${id}`)}></OwnedBotSelector>
+                        <p>Choose your throw:</p>
+                        <SubmitMove2 roundId={roundId} arbibotId={arbibotId}></SubmitMove2>
+                      </div>
+                    )}
+                    {tab === 2 && (
+                      <div>
+                        <h1>Player1: End Round</h1>
+                        <EndableRounds onRoundSelected={onRoundSelected}></EndableRounds>
+                        <EndRound
+                          nonce={nonce}
+                          arbibotId={arbibotId}
+                          roundId={roundId}
+                          moveAttestation={moveAttestation}
+                          onGeneration={onRevealGeneration}
+                        ></EndRound>
+                      </div>
+                    )}
+                   */
 
   return (
     <WagmiProvider autoConnect connectors={connectors} provider={provider}>
-      <div className="App">
-        <div>
-          <h1>Connection Info</h1>
-          <WagmiConnect></WagmiConnect>
-          <ConnectionInfo></ConnectionInfo>
-        </div>
-        <hr />
-        <ConnectedWrapper>
-          <OwnedBotsProvider>
-            <RoundsProvider>
-              <button onClick={() => setTab(0)} disabled={tab === 0}>
-                New round
-              </button>
-              <button onClick={() => setTab(1)} disabled={tab === 1}>
-                Open rounds
-              </button>
-              <button onClick={() => setTab(2)} disabled={tab === 2}>
-                Rounds to end
-              </button>
-              {tab === 0 && (
-                <div>
-                  <h1>Player1: Start new RPS round</h1>
-                  <p>Choose your bot:</p>
-                  <OwnedBotSelector onBotSelected={(id) => setArbibotId(`${id}`)}></OwnedBotSelector>
-                  <p>Choose your throw:</p>
-                  <StartRound arbibotId={arbibotId}></StartRound>
-                </div>
-              )}
-              {tab === 1 && (
-                <div>
-                  <h1>Player2: Submit move 2</h1>
-                  <p>Choose opponent:</p>
-                  <OpenRounds onRoundSelected={onRoundSelected}></OpenRounds>
-                  <p>Choose your bot:</p>
-                  <OwnedBotSelector onBotSelected={(id) => setArbibotId(`${id}`)}></OwnedBotSelector>
-                  <p>Choose your throw:</p>
-                  <SubmitMove2 roundId={roundId} arbibotId={arbibotId}></SubmitMove2>
-                </div>
-              )}
-              {tab === 2 && (
-                <div>
-                  <h1>Player1: End Round</h1>
-                  <EndableRounds onRoundSelected={onRoundSelected}></EndableRounds>
-                  <EndRound
-                    nonce={nonce}
-                    arbibotId={arbibotId}
-                    roundId={roundId}
-                    moveAttestation={moveAttestation}
-                    onGeneration={onRevealGeneration}
-                  ></EndRound>
-                </div>
-              )}
-            </RoundsProvider>
-          </OwnedBotsProvider>
-        </ConnectedWrapper>
-      </div>
+      <GlobalErrorProvider>
+        <Router>
+          <Nav></Nav>
+          <ConnectedWrapper>
+            <OwnedBotsProvider>
+              <RoundsProvider>
+                <Routes>
+                  <Route path="/start-round" element={<StartRound />} />
+                </Routes>
+              </RoundsProvider>
+            </OwnedBotsProvider>
+          </ConnectedWrapper>
+          <ErrorModal></ErrorModal>
+        </Router>
+      </GlobalErrorProvider>
     </WagmiProvider>
   )
 }
