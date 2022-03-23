@@ -58,14 +58,6 @@ const EmptyBot = styled.img`
   cursor: pointer;
   background-color: white;
 `
-const PlaceHolder = styled.div`
-  width: 128px;
-  height: 128px;
-  border: 4px solid transparent;
-  border-radius: 8px;
-  margin: 1px;
-`
-
 export const BotSelector = ({
   tokenIds,
   onBotSelected,
@@ -154,7 +146,6 @@ export const BotSelector = ({
         {renderAtIndex(3)}
       </BotsContainer>
       <BotsContainer>
-        {/* <PlaceHolder></PlaceHolder> */}
         {renderAtIndex(4)}
         {renderAtIndex(5)}
         {renderAtIndex(6)}

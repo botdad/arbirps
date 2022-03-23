@@ -23,7 +23,7 @@ export const StartRoundBot = ({
       ></OwnedBotSelector>
       <Row>
         <Col xs={12} className="text-end">
-          <Button onClick={onNext} disabled={!allowNext}>
+          <Button size="lg" onClick={onNext} disabled={!allowNext}>
             Next
           </Button>
         </Col>

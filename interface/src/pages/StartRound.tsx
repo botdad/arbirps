@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { BigNumber } from 'ethers'
-import { useContractRead, useSignMessage } from 'wagmi'
-import Button from 'react-bootstrap/Button'
+import { TransactionResponse } from '@ethersproject/providers'
+import { useContractRead } from 'wagmi'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Tab from 'react-bootstrap/Tab'
 import Nav from 'react-bootstrap/Nav'
+import Button from 'react-bootstrap/Button'
 import styled from 'styled-components'
 
-import { OwnedBotSelector } from '../components/OwnedBotSelector'
 import { ARBIBOT_RPS_CONFIG } from '../util/constants'
 import { AttestValidMoveProof } from '../util/proofs'
 import { StartRoundMove } from './StartRound/StartRoundMove'
@@ -22,7 +22,7 @@ const CloudBox = styled.div`
   background-repeat: no-repeat;
   background-size: cover;
   padding: 20px;
-  min-height: 425px;
+  min-height: 460px;
   border-radius: 24px;
 `
 
@@ -31,6 +31,7 @@ export const StartRound = () => {
   const [arbibotId, setArbibotId] = useState<string>()
   const [nonce, setNonce] = useState<BigNumber>()
   const [proof, setProof] = useState<AttestValidMoveProof>()
+  const [txHash, setTxHash] = useState<string>()
 
   const [{ data: nonceData }, getNonce] = useContractRead(ARBIBOT_RPS_CONFIG, 'getNonce', { skip: true })
 
@@ -45,6 +46,19 @@ export const StartRound = () => {
       setNonce(nonceData as any as BigNumber)
     }
   }, [nonceData])
+
+  const handleRoundSubmitted = (tx: TransactionResponse) => {
+    setTxHash(tx.hash)
+    setKey('fourth')
+  }
+
+  const handleStartOver = () => {
+    setKey('first')
+    setArbibotId(undefined)
+    setNonce(undefined)
+    setProof(undefined)
+    setTxHash(undefined)
+  }
 
   return (
     <Container>
@@ -94,7 +108,38 @@ export const StartRound = () => {
                       ></StartRoundMove>
                     </Tab.Pane>
                     <Tab.Pane eventKey="third">
-                      <StartRoundSubmit arbibotId={arbibotId} nonce={nonce} proofData={proof}></StartRoundSubmit>
+                      <StartRoundSubmit
+                        onPrev={() => setKey('second')}
+                        arbibotId={arbibotId}
+                        nonce={nonce}
+                        proofData={proof}
+                        onRoundSubmitted={handleRoundSubmitted}
+                      ></StartRoundSubmit>
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="fourth">
+                      <Row>
+                        <Col md={{ offset: 2, span: 8 }}>
+                          <br />
+                          <h4>All done!!</h4>
+                          <div className="d-grid">
+                            <Button
+                              variant="primary"
+                              size="lg"
+                              target="_blank"
+                              rel="noreferrer"
+                              href={`https://arbiscan.io/tx/${txHash}`}
+                            >
+                              Check arbiscan
+                            </Button>
+                          </div>
+                          <br />
+                          <div className="d-grid">
+                            <Button variant="primary" size="lg" onClick={handleStartOver}>
+                              Start Over
+                            </Button>
+                          </div>
+                        </Col>
+                      </Row>
                     </Tab.Pane>
                   </Tab.Content>
                 </Col>
@@ -106,168 +151,3 @@ export const StartRound = () => {
     </Container>
   )
 }
-
-/*
-
-import { useEffect, useState } from 'react'
-import { useContractRead, useContractWrite, useSignMessage } from 'wagmi'
-import { BigNumber } from 'ethers'
-import { keccak256 } from 'ethers/lib/utils'
-import Card from 'react-bootstrap/Card'
-import Button from 'react-bootstrap/Button'
-import Row from 'react-bootstrap/Row'
-import Col from 'react-bootstrap/Col'
-import Spinner from 'react-bootstrap/Spinner'
-import { useAttestProof } from '../hooks/useAttestProof'
-import { ARBIBOT_RPS_CONFIG } from '../util/constants'
-import { generateSignatureString } from '../util/generateSignatureString'
-import { ArbibotRPS } from '../abis/types/ArbibotRPS'
-import { AttestValidMoveProof } from '../util/proofs'
-
-export const ThrowSelector = ({
-  arbibotId,
-  nonce,
-  onProofGenerated,
-}: {
-  arbibotId: string
-  nonce: BigNumber
-  onProofGenerated?: (proof: AttestValidMoveProof) => void
-}) => {
-  const [sigRequired, setSigRequired] = useState(true)
-  const [move, setMove] = useState('')
-
-  const [proofData, proofError, proofLoading, generateProof] = useAttestProof()
-
-  const [{ error: startRoundError, loading: startRoundLoading }, startRound] = useContractWrite(
-    ARBIBOT_RPS_CONFIG,
-    'startRound'
-  )
-  const [{ data: signData, error: signError, loading: signLoading }, signMessage] = useSignMessage()
-
-  useEffect(() => {
-    setSigRequired(true)
-    setMove('')
-  }, [arbibotId, nonce])
-
-  useEffect(() => {
-    if (proofData && onProofGenerated) {
-      onProofGenerated(proofData)
-    }
-  }, [onProofGenerated, proofData])
-
-  const genProofLoading = proofLoading || signLoading
-
-  const startRoundWrapper = () => {
-    if (proofData) {
-      const startParams: ArbibotRPS.StartParamsStruct = {
-        proof: proofData.proof,
-        arbibotId: arbibotId,
-        moveAttestation: proofData.moveAttestation,
-        nonce,
-        maxRoundTime: 0,
-        permitAmount: 0,
-        permitDeadline: 0,
-        permitV: 0,
-        permitR: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        permitS: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      }
-
-      startRound({ args: [startParams] })
-    }
-  }
-
-  const handleProofGeneration = async (move: string) => {
-    if (genProofLoading) {
-      return
-    }
-
-    setMove(move)
-
-    try {
-      let signatureHash
-      if (sigRequired) {
-        const signature = await signMessage({
-          message: generateSignatureString(nonce.toNumber(), arbibotId),
-        })
-
-        if (signature.error) {
-          throw signature.error
-        }
-
-        signatureHash = keccak256(signature.data || '0x')
-        setSigRequired(false)
-      } else {
-        signatureHash = keccak256(signData || '0x')
-      }
-
-      await generateProof({ move, secret: signatureHash })
-    } catch (error) {
-      console.error(error)
-      setMove('')
-    }
-  }
-
-  return (
-    <Row className="justify-content-lg-center">
-      <Col md={4} lg={3}>
-        <Card>
-          <Card.Img variant="top" src="/images/rock.png" />
-          <Card.Body className="d-grid gap-2">
-            <Button
-              variant={move === '0' ? 'primary' : 'outline-primary'}
-              onClick={() => handleProofGeneration('0')}
-              disabled={genProofLoading}
-            >
-              {proofLoading && move === '0' && (
-                <>
-                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />{' '}
-                </>
-              )}
-              Rock
-            </Button>
-          </Card.Body>
-        </Card>
-      </Col>
-      <Col md={4} lg={3}>
-        <Card>
-          <Card.Img variant="top" src="/images/paper.png" />
-          <Card.Body className="d-grid gap-2">
-            <Button
-              variant={move === '1' ? 'primary' : 'outline-primary'}
-              onClick={() => handleProofGeneration('1')}
-              disabled={genProofLoading}
-            >
-              {proofLoading && move === '1' && (
-                <>
-                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />{' '}
-                </>
-              )}
-              Paper
-            </Button>
-          </Card.Body>
-        </Card>
-      </Col>
-      <Col md={4} lg={3}>
-        <Card>
-          <Card.Img variant="top" src="/images/scissors.png" />
-          <Card.Body className="d-grid gap-2">
-            <Button
-              variant={move === '2' ? 'primary' : 'outline-primary'}
-              onClick={() => handleProofGeneration('2')}
-              disabled={genProofLoading}
-            >
-              {proofLoading && move === '2' && (
-                <>
-                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />{' '}
-                </>
-              )}
-              Scissors
-            </Button>
-          </Card.Body>
-        </Card>
-      </Col>
-    </Row>
-  )
-}
-
-*/

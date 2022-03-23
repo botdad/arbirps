@@ -66,7 +66,6 @@ export const StartRoundMove = ({
       await generateProof({ move, secret: signatureHash })
     } catch (error) {
       console.error(error)
-      console.log('wtf')
       setMove('')
     }
   }
@@ -81,10 +80,12 @@ export const StartRoundMove = ({
       ></MoveSelector>
       <Row>
         <Col xs={6}>
-          <Button onClick={onPrev}>Prev</Button>
+          <Button size="lg" onClick={onPrev}>
+            Prev
+          </Button>
         </Col>
         <Col xs={6} className="text-end">
-          <Button onClick={onNext} disabled={signLoading || move === ''}>
+          <Button size="lg" onClick={onNext} disabled={signLoading || move === ''}>
             Next
           </Button>
         </Col>

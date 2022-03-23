@@ -35,6 +35,7 @@ export const MoveSelector = ({
           <Card.Img variant="top" src="/images/rock.png" />
           <Card.Body className="d-grid gap-2">
             <Button
+              size="lg"
               variant={move === '0' ? 'primary' : 'outline-primary'}
               onClick={() => handleMoveSelected('0')}
               disabled={disabled}
@@ -49,6 +50,7 @@ export const MoveSelector = ({
           <Card.Img variant="top" src="/images/paper.png" />
           <Card.Body className="d-grid gap-2">
             <Button
+              size="lg"
               variant={move === '1' ? 'primary' : 'outline-primary'}
               onClick={() => handleMoveSelected('1')}
               disabled={disabled}
@@ -63,6 +65,7 @@ export const MoveSelector = ({
           <Card.Img variant="top" src="/images/scissors.png" />
           <Card.Body className="d-grid gap-2">
             <Button
+              size="lg"
               variant={move === '2' ? 'primary' : 'outline-primary'}
               onClick={() => handleMoveSelected('2')}
               disabled={disabled}
