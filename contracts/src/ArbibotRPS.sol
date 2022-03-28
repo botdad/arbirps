@@ -20,7 +20,7 @@ contract ArbibotRPS {
   error ErrorRoundHasMove();
   error ErrorUnauthorized();
   error ErrorNoMove2();
-  error ErrorDeadlineExpired();
+  error ErrorInvalidMaxRoundTime();
 
   /// -----------------------------------------------------------------------
   /// Events
@@ -121,6 +121,10 @@ contract ArbibotRPS {
       revert ErrorInvalidProof();
     }
 
+    if (params.permitAmount > 0 && params.maxRoundTime == 0) {
+      revert ErrorInvalidMaxRoundTime();
+    }
+
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
@@ -179,17 +183,12 @@ contract ArbibotRPS {
       revert ErrorInvalidMove();
     }
 
-    uint64 blockTimestamp = uint64(block.timestamp);
-    if (round.maxRoundTime != 0 && blockTimestamp > round.maxRoundTime + round.startedAt) {
-      revert ErrorDeadlineExpired();
-    }
-
     /// -------------------------------------------------------------------
     /// State updates
     /// -------------------------------------------------------------------
     round.arbibotId2 = params.arbibotId;
     round.move2 = params.move;
-    round.move2PlayedAt = blockTimestamp;
+    round.move2PlayedAt = uint64(block.timestamp);
 
     rounds[params.roundId] = round;
 
@@ -241,11 +240,6 @@ contract ArbibotRPS {
       revert ErrorInvalidMove();
     }
 
-    uint64 blockTimestamp = uint64(block.timestamp);
-    if (round.maxRoundTime != 0 && blockTimestamp > round.maxRoundTime + round.move2PlayedAt) {
-      revert ErrorDeadlineExpired();
-    }
-
     if (!RevealMoveVerifier.verifyProof(params.proof, params.move1, params.move1Attestation)) {
       revert ErrorInvalidProof();
     }
@@ -289,50 +283,6 @@ contract ArbibotRPS {
     }
 
     emit RoundEnded(params.roundId, round.winner);
-  }
-
-  /// @notice Returns wager if there is a deadline for play and it is exceeded
-  /// @param arbibotId token id of original arbibot player
-  /// @param roundId the id of the round in a refundable state
-  function getRefund(uint256 arbibotId, uint256 roundId) external onlyArbibotOwner(arbibotId) {
-    /// -------------------------------------------------------------------
-    /// Validation
-    /// -------------------------------------------------------------------
-    Round memory round = rounds[roundId];
-
-    if (round.maxRoundTime == 0) {
-      revert ErrorUnauthorized();
-    }
-
-    if (round.ended) {
-      revert ErrorUnauthorized();
-    }
-
-    if (round.arbibotId1 != arbibotId) {
-      revert ErrorUnauthorized();
-    }
-
-    if (block.timestamp < round.startedAt + round.maxRoundTime) {
-      revert ErrorUnauthorized();
-    }
-
-    if (round.move2 != DEAD_MOVE) {
-      revert ErrorUnauthorized();
-    }
-
-    /// -------------------------------------------------------------------
-    /// State updates
-    /// -------------------------------------------------------------------
-    round.ended = true;
-    rounds[roundId] = round;
-
-    /// -------------------------------------------------------------------
-    /// Effects
-    /// -------------------------------------------------------------------
-    // msg.sender is garunteed to be arbibots.ownerOf(arbibotId); by modifier
-    botgold.transfer(msg.sender, round.wager);
-
-    emit RoundEnded(roundId, 0);
   }
 
   /// @notice Claim winnings for player 2 if player 1 has not revealed the winner in time

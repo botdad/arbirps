@@ -23,7 +23,7 @@ contract ArbibotRPSTest is DSTest {
     erc721 = new MockMinimalErc721();
     erc721.setOwner(address(this));
 
-    erc20 = new TestERC20("botgold", "BGLD", 18);
+    erc20 = new TestERC20("BotGold", "BG", 18);
 
     rps = new ArbibotRPS(address(erc721), address(erc20));
   }
@@ -293,40 +293,6 @@ contract ArbibotRPSTest is DSTest {
     rps.endRound(ArbibotRPS.EndParams(revealProof, arbibotId1, roundId, 1, moveAttestations[1]));
   }
 
-  function testExpiredBeforeRound2() public {
-    uint256[8] memory startProof = moveProofUints[0];
-    uint256 arbibotId1 = 0;
-    uint256 arbibotId2 = 1;
-    uint8 move2 = 1;
-
-    uint256 roundId = rps.totalRounds();
-
-    rps.startRound(ArbibotRPS.StartParams(startProof, arbibotId1, moveAttestations[0], 0, 1, 0, 0, 0, "", ""));
-
-    vm.warp(block.timestamp + 2);
-
-    vm.expectRevert(getErrorBytes("ErrorDeadlineExpired()"));
-    rps.submitMove2(ArbibotRPS.Move2Params(arbibotId2, roundId, move2, 0, 0, "", ""));
-  }
-
-  function testExpiredBeforeEnd() public {
-    uint256[8] memory startProof = moveProofUints[0];
-    uint256[8] memory revealProof = revealProofUints[0];
-    uint256 arbibotId1 = 0;
-    uint256 arbibotId2 = 1;
-    uint8 move1 = 0;
-    uint8 move2 = 1;
-
-    uint256 roundId = rps.totalRounds();
-    rps.startRound(ArbibotRPS.StartParams(startProof, arbibotId1, moveAttestations[0], 0, 2, 0, 0, 0, "", ""));
-    vm.warp(block.timestamp + 1);
-    rps.submitMove2(ArbibotRPS.Move2Params(arbibotId2, roundId, move2, 0, 0, "", ""));
-
-    vm.warp(block.timestamp + 3);
-    vm.expectRevert(getErrorBytes("ErrorDeadlineExpired()"));
-    rps.endRound(ArbibotRPS.EndParams(revealProof, arbibotId1, roundId, move1, moveAttestations[0]));
-  }
-
   function testWagerPayout() public {
     uint256 amount = 1;
     uint256 arbibotId1 = 0;
@@ -356,7 +322,7 @@ contract ArbibotRPSTest is DSTest {
         arbibotId1,
         moveAttestations[0],
         0,
-        0,
+        1,
         amount,
         deadline,
         v,
@@ -423,7 +389,7 @@ contract ArbibotRPSTest is DSTest {
         arbibotId1,
         moveAttestations[0],
         0,
-        0,
+        1,
         amount,
         deadline,
         v,
@@ -459,55 +425,6 @@ contract ArbibotRPSTest is DSTest {
 
     assertEq(erc20.balanceOf(someAddress), 1);
     assertEq(erc20.balanceOf(otherAddress), 1);
-  }
-
-  function testRefund() public {
-    uint256 amount = 1;
-    uint256 arbibotId1 = 0;
-    uint256 roundId = rps.totalRounds();
-
-    assertEq(erc20.balanceOf(someAddress), 0);
-    assertEq(erc20.balanceOf(otherAddress), 0);
-
-    erc20.mint(someAddress, amount);
-    erc20.mint(otherAddress, amount);
-
-    assertEq(erc20.balanceOf(someAddress), 1);
-    assertEq(erc20.balanceOf(otherAddress), 1);
-
-    ArbibotRPS.StartParams memory startParams;
-    {
-      uint256 nonce = erc20.nonces(someAddress);
-      uint256 deadline = block.timestamp + 2;
-      bytes32 hash = generatePermitHash(someAddress, address(rps), amount, nonce, deadline);
-
-      (uint8 v, bytes32 r, bytes32 s) = vm.sign(somePrivateKey, hash);
-      startParams = ArbibotRPS.StartParams(
-        moveProofUints[0],
-        arbibotId1,
-        moveAttestations[0],
-        0,
-        2,
-        amount,
-        deadline,
-        v,
-        r,
-        s
-      );
-    }
-
-    erc721.setOwner(someAddress);
-    vm.prank(someAddress);
-    rps.startRound(startParams);
-
-    assertEq(erc20.balanceOf(someAddress), 0);
-
-    vm.warp(block.timestamp + 3);
-
-    vm.prank(someAddress);
-    rps.getRefund(arbibotId1, roundId);
-
-    assertEq(erc20.balanceOf(someAddress), 1);
   }
 
   function testCollectForfeit() public {
