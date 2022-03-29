@@ -1,13 +1,5 @@
 # Arbibot RPS
 
-## UNDER ACTIVE DEVELOPMENT
-
-```
-TODO:
-☐ styled interface
-☐ Whitelisted player 2s
-```
-
 Implementation of an on chain rock paper scissors game using zero knowledge proofs for hiding the first throw until after the second throw has been played on chain. Oh and only Arbibots can play.
 
 ## Wtf why?

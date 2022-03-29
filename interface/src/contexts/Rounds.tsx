@@ -1,8 +1,11 @@
-import { createContext, PropsWithChildren } from 'react'
+import { createContext, PropsWithChildren, useContext } from 'react'
 import { BigNumber } from 'ethers'
 import { useEffect, useState } from 'react'
 import { useContractRead, useContractEvent } from 'wagmi'
 import { ARBIBOT_RPS_CONFIG } from '../util/constants'
+import { isEndable, isForfeitable, isPlayable } from '../util/rounds'
+import OwnedBots from './OwnedBots'
+import RoundCounts from './RoundCounts'
 
 export type ArbibotRPSRound = {
   roundId: number
@@ -20,15 +23,27 @@ export type ArbibotRPSRound = {
   ended: boolean
 }
 
-const defaultValue: ArbibotRPSRound[] = []
+const defaultValue: { all: ArbibotRPSRound[]; open: ArbibotRPSRound[] } = { all: [], open: [] }
 const Rounds = createContext(defaultValue)
 
 export const RoundsProvider = (props: PropsWithChildren<any>) => {
+  const tokenIds = useContext(OwnedBots)
+  const { setEndable, setPlayable } = useContext(RoundCounts)
   const [rounds, setRounds] = useState<ArbibotRPSRound[]>([])
-  const [{ data, error, loading }, getRounds] = useContractRead(ARBIBOT_RPS_CONFIG, 'getRounds')
+  const [{ data }, getRounds] = useContractRead(ARBIBOT_RPS_CONFIG, 'getRounds')
   useContractEvent(ARBIBOT_RPS_CONFIG, 'RoundStarted', () => getRounds())
   useContractEvent(ARBIBOT_RPS_CONFIG, 'Move2Played', () => getRounds())
   useContractEvent(ARBIBOT_RPS_CONFIG, 'RoundEnded', () => getRounds())
+
+  const [openRounds, setOpenRounds] = useState<ArbibotRPSRound[]>([])
+
+  useEffect(() => {
+    const endable = rounds.filter((round) => isEndable(round, tokenIds) || isForfeitable(round, tokenIds))
+    const playable = rounds.filter((round) => isPlayable(round))
+    setEndable(endable.length)
+    setPlayable(playable.length)
+    setOpenRounds([...endable, ...playable])
+  }, [rounds, setEndable, setPlayable, tokenIds])
 
   useEffect(() => {
     if (data !== undefined) {
@@ -54,7 +69,7 @@ export const RoundsProvider = (props: PropsWithChildren<any>) => {
     }
   }, [data])
 
-  return <Rounds.Provider {...props} value={rounds} />
+  return <Rounds.Provider {...props} value={{ all: rounds, open: openRounds }} />
 }
 
 export default Rounds

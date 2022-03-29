@@ -2,6 +2,7 @@ import { useContext, useState } from 'react'
 import Pagination from 'react-bootstrap/Pagination'
 import styled from 'styled-components'
 import GlobalError from '../contexts/GlobalError'
+import { BotBopper } from './BotBopper'
 
 type Props = {
   selected: boolean
@@ -11,8 +12,8 @@ type Props = {
 const BotImageContainer = styled.div`
   border-radius: 8px;
   margin: 1px;
-  width: 128px;
-  height: 128px;
+  width: 136px;
+  height: 136px;
   overflow: hidden;
   cursor: pointer;
   position: relative;
@@ -28,16 +29,17 @@ const BotImageBorder = styled.div<Props>`
   -webkit-animation: spin 3s linear infinite;
   -ms-animation: spin 3s linear infinite;
 `
-const BotImage = styled.img<Props>`
+const BotBopperContainer = styled.div<Props>`
   border: ${(props) => (props.selected ? '4px solid transparent' : '4px solid black')};
-  width: 128px;
-  height: 128px;
+  width: 136px;
+  height: 136px;
   border-radius: 8px;
   position: absolute;
+  overflow: hidden;
 `
 
 const BotGold = styled.img`
-  margin: 33px;
+  margin: 37px;
   width: 64px;
   height: 64px;
 `
@@ -48,9 +50,9 @@ const BotsContainer = styled.div`
 `
 
 const EmptyBot = styled.img`
-  padding: 27px 37px;
-  width: 128px;
-  height: 128px;
+  padding: 20px 20px;
+  width: 136px;
+  height: 136px;
   border: 4px solid black;
   border-radius: 8px;
   margin: 1px;
@@ -121,13 +123,9 @@ export const BotSelector = ({
           }}
         >
           <BotImageBorder selected={selected} />
-          <BotImage
-            selected={selected}
-            alt={`Arbit #${tokenId}`}
-            src={`/images/arbibots/${tokenId}.png`}
-            onMouseOver={(e) => (e.currentTarget.src = `/images/bounce/${tokenId}.gif`)}
-            onMouseOut={(e) => (e.currentTarget.src = `/images/arbibots/${tokenId}.png`)}
-          ></BotImage>
+          <BotBopperContainer selected={selected}>
+            <BotBopper tokenId={tokenId} />
+          </BotBopperContainer>
         </BotImageContainer>
       )
       return elements

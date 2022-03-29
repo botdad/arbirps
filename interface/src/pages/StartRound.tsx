@@ -8,23 +8,13 @@ import Col from 'react-bootstrap/Col'
 import Tab from 'react-bootstrap/Tab'
 import Nav from 'react-bootstrap/Nav'
 import Button from 'react-bootstrap/Button'
-import styled from 'styled-components'
 
 import { ARBIBOT_RPS_CONFIG } from '../util/constants'
 import { AttestValidMoveProof } from '../util/proofs'
 import { StartRoundMove } from './StartRound/StartRoundMove'
 import { StartRoundBot } from './StartRound/StartRoundBot'
 import { StartRoundSubmit } from './StartRound/StartRoundSubmit'
-
-const CloudBox = styled.div`
-  background-image: url('/images/cloudblue.png');
-  background-position: 50% 38%;
-  background-repeat: no-repeat;
-  background-size: cover;
-  padding: 20px;
-  min-height: 460px;
-  border-radius: 24px;
-`
+import { CloudBox } from '../components/CloudBox'
 
 export const StartRound = () => {
   const [key, setKey] = useState('first')

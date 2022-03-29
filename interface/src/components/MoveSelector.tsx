@@ -32,7 +32,7 @@ export const MoveSelector = ({
     <Row className="justify-content-lg-center">
       <Col md={4} lg={3}>
         <Card>
-          <Card.Img variant="top" src="/images/rock.png" />
+          <Card.Img variant="top" src="/images/rockbot.png" />
           <Card.Body className="d-grid gap-2">
             <Button
               size="lg"
@@ -47,7 +47,7 @@ export const MoveSelector = ({
       </Col>
       <Col md={4} lg={3}>
         <Card>
-          <Card.Img variant="top" src="/images/paper.png" />
+          <Card.Img variant="top" src="/images/paperbot.png" />
           <Card.Body className="d-grid gap-2">
             <Button
               size="lg"
@@ -62,7 +62,7 @@ export const MoveSelector = ({
       </Col>
       <Col md={4} lg={3}>
         <Card>
-          <Card.Img variant="top" src="/images/scissors.png" />
+          <Card.Img variant="top" src="/images/scissorbot.png" />
           <Card.Body className="d-grid gap-2">
             <Button
               size="lg"

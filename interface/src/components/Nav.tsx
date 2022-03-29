@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { LinkContainer } from 'react-router-bootstrap'
 import { useAccount, useNetwork, useConnect } from 'wagmi'
 import Container from 'react-bootstrap/Container'
@@ -6,7 +6,9 @@ import Button from 'react-bootstrap/Button'
 import Navbar from 'react-bootstrap/Navbar'
 import BSNav from 'react-bootstrap/Nav'
 import Modal from 'react-bootstrap/Modal'
+import Badge from 'react-bootstrap/Badge'
 import styled from 'styled-components'
+import RoundCounts from '../contexts/RoundCounts'
 
 const HappyBotImage = styled.img`
   width: 75px;
@@ -15,6 +17,7 @@ const HappyBotImage = styled.img`
 `
 
 export const Nav = () => {
+  const { endable, playable } = useContext(RoundCounts)
   const [{ data: accountData }, disconnect] = useAccount()
   const [{ data: networkData, error, loading }, switchNetwork] = useNetwork()
   const [{ data: connectData, error: connectError }, connect] = useConnect()
@@ -71,12 +74,30 @@ export const Nav = () => {
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <BSNav className="me-auto">
+            <BSNav variant="pills" className="me-auto">
               <LinkContainer to="/start-round">
-                <BSNav.Link>Start round</BSNav.Link>
+                <BSNav.Link>Start Round</BSNav.Link>
               </LinkContainer>
-              <BSNav.Link href="#link">Open rounds</BSNav.Link>
-              <BSNav.Link href="#link">End round</BSNav.Link>
+              <LinkContainer to="/rounds">
+                <BSNav.Link>All Rounds</BSNav.Link>
+              </LinkContainer>
+              <LinkContainer to="/open-rounds">
+                <BSNav.Link>
+                  Open Rounds
+                  {endable > 0 && (
+                    <>
+                      {' '}
+                      <Badge bg="danger">{endable}</Badge>
+                    </>
+                  )}
+                  {playable > 0 && (
+                    <>
+                      {' '}
+                      <Badge bg="secondary">{playable}</Badge>
+                    </>
+                  )}
+                </BSNav.Link>
+              </LinkContainer>
             </BSNav>
             <BSNav>
               <Button variant="outline-primary" onClick={handleShowCorrectModal}>

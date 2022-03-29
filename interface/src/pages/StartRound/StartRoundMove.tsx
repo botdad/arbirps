@@ -23,7 +23,7 @@ export const StartRoundMove = ({
   onNext: () => void
   onProofGenerated?: (proof: AttestValidMoveProof) => void
 }) => {
-  let [move, setMove] = useState<string>()
+  const [move, setMove] = useState<string>()
   const [sigRequired, setSigRequired] = useState(true)
 
   const [proofData, proofError, , generateProof] = useAttestProof()

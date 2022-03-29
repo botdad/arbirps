@@ -25,7 +25,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "ErrorDeadlineExpired",
+    name: "ErrorInvalidMaxRoundTime",
     type: "error",
   },
   {
@@ -236,24 +236,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "arbibotId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "roundId",
-        type: "uint256",
-      },
-    ],
-    name: "getRefund",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {

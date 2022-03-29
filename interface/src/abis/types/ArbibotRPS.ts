@@ -158,7 +158,6 @@ export interface ArbibotRPSInterface extends utils.Interface {
     "collectForfeit(uint256,uint256)": FunctionFragment;
     "endRound((uint256[8],uint256,uint256,uint8,uint256))": FunctionFragment;
     "getNonce(uint256)": FunctionFragment;
-    "getRefund(uint256,uint256)": FunctionFragment;
     "getRound(uint256)": FunctionFragment;
     "getRounds()": FunctionFragment;
     "rounds(uint256)": FunctionFragment;
@@ -181,10 +180,6 @@ export interface ArbibotRPSInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getNonce",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getRefund",
-    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getRound",
@@ -217,7 +212,6 @@ export interface ArbibotRPSInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "endRound", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getRefund", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getRound", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getRounds", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "rounds", data: BytesLike): Result;
@@ -318,12 +312,6 @@ export interface ArbibotRPS extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { nonce: BigNumber }>;
 
-    getRefund(
-      arbibotId: BigNumberish,
-      roundId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     getRound(
       roundId: BigNumberish,
       overrides?: CallOverrides
@@ -401,12 +389,6 @@ export interface ArbibotRPS extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getRefund(
-    arbibotId: BigNumberish,
-    roundId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   getRound(
     roundId: BigNumberish,
     overrides?: CallOverrides
@@ -481,12 +463,6 @@ export interface ArbibotRPS extends BaseContract {
       arbibotId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getRefund(
-      arbibotId: BigNumberish,
-      roundId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     getRound(
       roundId: BigNumberish,
@@ -599,12 +575,6 @@ export interface ArbibotRPS extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getRefund(
-      arbibotId: BigNumberish,
-      roundId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     getRound(
       roundId: BigNumberish,
       overrides?: CallOverrides
@@ -648,12 +618,6 @@ export interface ArbibotRPS extends BaseContract {
     getNonce(
       arbibotId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getRefund(
-      arbibotId: BigNumberish,
-      roundId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getRound(

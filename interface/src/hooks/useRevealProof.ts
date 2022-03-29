@@ -23,6 +23,7 @@ export const useRevealProof = () => {
       setError(error as Error)
       setProof(undefined)
       setLoading(false)
+      throw error
     }
   }, [])
 

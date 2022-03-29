@@ -8,7 +8,6 @@ import FormControl from 'react-bootstrap/FormControl'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import InputGroup from 'react-bootstrap/InputGroup'
-import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import { AttestValidMoveProof } from '../../util/proofs'
 import { ArbibotRPS } from '../../abis/types'
 import {
@@ -22,6 +21,7 @@ import {
 import { formatUnits, parseUnits, splitSignature } from 'ethers/lib/utils'
 import GlobalError from '../../contexts/GlobalError'
 import { TransactionResponse } from '@ethersproject/providers'
+import Spinner from 'react-bootstrap/Spinner'
 
 const InfoButton = styled(Button)`
   padding: 0;
@@ -36,14 +36,14 @@ const HappyBotImage = styled.img`
   float: left;
   padding-right: 10px;
 `
-const DEFAULT_MAX_ROUND_TIME = 24 * 60 * 60
+const DEFAULT_MAX_ROUND_TIME = 2 * 24 * 60 * 60
 
-const ROUND_TIMINGS = [
-  { maxRoundTime: 0, label: 'None' },
-  { maxRoundTime: 6 * 60 * 60, label: '6 Hours' },
-  { maxRoundTime: 24 * 60 * 60, label: '1 Day' },
-  { maxRoundTime: 2 * 24 * 60 * 60, label: '2 Days' },
-]
+// const ROUND_TIMINGS = [
+//   { maxRoundTime: 0, label: 'None' },
+//   { maxRoundTime: 6 * 60 * 60, label: '6 Hours' },
+//   { maxRoundTime: 24 * 60 * 60, label: '1 Day' },
+//   { maxRoundTime: 2 * 24 * 60 * 60, label: '2 Days' },
+// ]
 
 export const StartRoundSubmit = ({
   arbibotId,
@@ -60,7 +60,8 @@ export const StartRoundSubmit = ({
 }) => {
   const { show: showError } = useContext(GlobalError)
   const [balance, setBalance] = useState('')
-  const [betAmount, setBetAmount] = useState('')
+  const [betAmount, setBetAmount] = useState('0')
+  const [betAmountBN, setBetAmountBN] = useState(BigNumber.from(0))
   const [maxRoundTime, setMaxRoundTime] = useState(DEFAULT_MAX_ROUND_TIME)
   const [permitDeadline, setPermitDeadline] = useState(0)
   const [permitSignature, setPermitSignature] = useState<Signature>()
@@ -68,21 +69,22 @@ export const StartRoundSubmit = ({
   const [modalText, setModalText] = useState('')
   const [{ data: accountData }] = useAccount()
   const [{ data: networkData }] = useNetwork()
-  const [{ data: nonceData, error: nonceError, loading: nonceLoading }, getNonce] = useContractRead(
-    BOTGOLD_CONFIG,
-    'nonces',
-    { args: [accountData?.address] }
-  )
-  const [{ data: balanceData, error: balanceError, loading: balanceLoading }, balanceOf] = useContractRead(
-    BOTGOLD_CONFIG,
-    'balanceOf',
-    { args: [accountData?.address] }
-  )
-  const [{ error: startRoundError, loading: startRoundLoading }, startRound] = useContractWrite(
-    ARBIBOT_RPS_CONFIG,
-    'startRound'
-  )
-  const [{ data: signatureData, error: signatureError, loading: signatureLoading }, signTypedData] = useSignTypedData()
+  const [{ data: nonceData }] = useContractRead(BOTGOLD_CONFIG, 'nonces', {
+    args: [accountData?.address],
+  })
+  const [{ data: balanceData }] = useContractRead(BOTGOLD_CONFIG, 'balanceOf', {
+    args: [accountData?.address],
+  })
+  const [{ loading: startRoundLoading }, startRound] = useContractWrite(ARBIBOT_RPS_CONFIG, 'startRound')
+  const [{ data: signatureData, loading: signatureLoading }, signTypedData] = useSignTypedData()
+
+  useEffect(() => {
+    try {
+      setBetAmountBN(parseUnits(betAmount, BOTGOLD_DECIMALS))
+    } catch (e) {
+      setBetAmountBN(BigNumber.from(0))
+    }
+  }, [betAmount])
 
   useEffect(() => {
     if (balanceData) {
@@ -120,18 +122,7 @@ export const StartRoundSubmit = ({
       deadline,
     }
 
-    console.log(value)
-
     signTypedData({ domain: BOTGOLD_EIP_2612_DOMAIN, types: EIP_2612_TYPES, value })
-  }
-
-  const handleSetMaxRoundTime = (_maxRoundTime: number) => {
-    if (betAmount !== '' && _maxRoundTime === 0) {
-      showError('You must provide a deadline if you include a wager')
-      return
-    }
-
-    setMaxRoundTime(_maxRoundTime)
   }
 
   const handleSetBetAmount = (_betAmount: string) => {
@@ -142,7 +133,7 @@ export const StartRoundSubmit = ({
   }
 
   const handleStartRound = async () => {
-    if (!permitSignature && betAmount !== '') {
+    if (!permitSignature && !betAmountBN.eq(0)) {
       showError('You must confirm your bet (or empty it) before submitting')
       return
     }
@@ -153,13 +144,12 @@ export const StartRoundSubmit = ({
         moveAttestation: proofData.moveAttestation,
         nonce,
         maxRoundTime,
-        permitAmount: parseUnits(betAmount, BOTGOLD_DECIMALS),
+        permitAmount: betAmountBN,
         permitDeadline: permitDeadline,
         permitV: permitSignature?.v || 0,
         permitR: permitSignature?.r || '0x0000000000000000000000000000000000000000000000000000000000000000',
         permitS: permitSignature?.s || '0x0000000000000000000000000000000000000000000000000000000000000000',
       }
-      console.log(startParams)
 
       const { data } = await startRound({ args: [startParams] })
       if (data && onRoundSubmitted) {
@@ -188,41 +178,36 @@ export const StartRoundSubmit = ({
             <InputGroup.Text>$BG</InputGroup.Text>
             <FormControl
               aria-label="Amount"
+              type="number"
               placeholder="0.00"
               value={betAmount}
               onChange={(e) => handleSetBetAmount(e.target.value)}
             />
             <Button variant="primary" disabled={betAmount === ''} onClick={handleSignPermit}>
+              {signatureLoading && (
+                <>
+                  <Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" />{' '}
+                </>
+              )}
               Confirm
             </Button>
           </InputGroup>
-          <h4>
-            <InfoButton
-              variant="link"
-              onClick={() =>
-                handleShowModal(
-                  'If no opponent has played by the deadline you can get your wager back. Also, if you do not end the round after your opponent has played you lose by forfeit after the deadline'
-                )
-              }
-            >
-              ⓘ
-            </InfoButton>{' '}
-            Add a deadline?
-          </h4>
-          <ButtonGroup size="lg" className="d-flex">
-            {ROUND_TIMINGS.map((timing) => (
-              <Button
-                key={timing.maxRoundTime}
-                active={timing.maxRoundTime === maxRoundTime}
-                onClick={() => handleSetMaxRoundTime(timing.maxRoundTime)}
-              >
-                {timing.label}
-              </Button>
-            ))}
-          </ButtonGroup>
+          {!betAmountBN.eq(0) && (
+            <p>
+              <small>
+                Once a second move has been played you have 48 hours to end the round. If you do not end the round
+                within 48 hours player 2 can claim the reward and win by forfeit.
+              </small>
+            </p>
+          )}
           <br />
           <div className="d-grid">
             <Button variant="primary" size="lg" onClick={handleStartRound}>
+              {startRoundLoading && (
+                <>
+                  <Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" />{' '}
+                </>
+              )}
               START THE ROUND!!
             </Button>
           </div>

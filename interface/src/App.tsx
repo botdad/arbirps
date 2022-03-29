@@ -15,6 +15,11 @@ import { RoundsProvider } from './contexts/Rounds'
 import { GlobalErrorProvider } from './contexts/GlobalError'
 import { ErrorModal } from './components/ErrorModal'
 import { Nav } from './components/Nav'
+import { OpenRounds } from './pages/OpenRounds'
+import { RoundFight } from './pages/RoundFight'
+import { Rounds } from './pages/Rounds'
+import { RoundCountsProvider } from './contexts/RoundCounts'
+import { RoundDetails } from './pages/RoundDetails'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -64,19 +69,25 @@ function App() {
   return (
     <WagmiProvider autoConnect connectors={connectors} provider={provider}>
       <GlobalErrorProvider>
-        <Router>
-          <Nav></Nav>
-          <ConnectedWrapper>
-            <OwnedBotsProvider>
-              <RoundsProvider>
-                <Routes>
-                  <Route path="/start-round" element={<StartRound />} />
-                </Routes>
-              </RoundsProvider>
-            </OwnedBotsProvider>
-          </ConnectedWrapper>
-          <ErrorModal></ErrorModal>
-        </Router>
+        <RoundCountsProvider>
+          <Router>
+            <Nav></Nav>
+            <ConnectedWrapper>
+              <OwnedBotsProvider>
+                <RoundsProvider>
+                  <Routes>
+                    <Route path="/start-round" element={<StartRound />} />
+                    <Route path="/rounds" element={<Rounds />} />
+                    <Route path="/rounds/:roundId" element={<RoundDetails />} />
+                    <Route path="/rounds/:roundId/fight" element={<RoundFight />} />
+                    <Route path="/open-rounds" element={<OpenRounds />} />
+                  </Routes>
+                </RoundsProvider>
+              </OwnedBotsProvider>
+            </ConnectedWrapper>
+            <ErrorModal></ErrorModal>
+          </Router>
+        </RoundCountsProvider>
       </GlobalErrorProvider>
     </WagmiProvider>
   )
