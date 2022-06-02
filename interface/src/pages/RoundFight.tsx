@@ -105,14 +105,14 @@ export const RoundFight = () => {
 
   const submitMoveDisabled = () => {
     if (!round) return true
-    if (round.wager.eq(0)) return true
+    if (round.wager.eq(0)) return false
     if (!round.wager.eq(0) && !permitSignature) return true
 
     return false
   }
 
   const handleSubmitMove2 = async () => {
-    if (!permitSignature || !round || !tokenId || !move) {
+    if (!round || (!round.wager.eq(0) && !permitSignature) || !tokenId || !move) {
       return
     }
 

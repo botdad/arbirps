@@ -26,7 +26,8 @@ import { RoundDetails } from './pages/RoundDetails'
 const infuraId = process.env.INFURA_ID
 
 // Chains for connectors to support
-const chains = [chain.arbitrumOne, chain.arbitrumRinkeby, chain.localhost, chain.hardhat]
+// const chains = [chain.arbitrumOne, chain.arbitrumRinkeby, chain.localhost, chain.hardhat]
+const chains = [chain.arbitrumRinkeby]
 
 // Set up connectors
 const connectors = ({ chainId }: { chainId?: Number }) => {
@@ -58,8 +59,8 @@ type GetProviderArgs = {
 
 const provider = ({ chainId, connector }: GetProviderArgs): BaseProvider => {
   console.log('getting provider', chainId)
-  if (chainId === 42161) {
-    const chain = connector?.chains.find((x) => x.id === 31337)?.rpcUrls[0]
+  if (chainId === 421611) {
+    const chain = connector?.chains.find((x) => x.id === 421611)?.rpcUrls[0]
     return new providers.JsonRpcProvider(chain) as any as BaseProvider
   }
   return providers.getDefaultProvider(chainId) as any as BaseProvider

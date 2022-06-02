@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import "ds-test/test.sol";
-
 import "./AttestValidMoveVerifier.sol";
 import "./RevealMoveVerifier.sol";
 import "./IMinimalERC721.sol";
